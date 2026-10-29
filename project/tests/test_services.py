@@ -83,9 +83,15 @@ def test_find_patient_trims_surrounding_whitespace(clinic) -> None:
 
 
 def test_find_patient_is_case_sensitive(clinic) -> None:
-    """ID contract: p1 is a different, unregistered ID, so it is absent."""
+    """ID contract: p1 is a different, unregistered ID, so it is absent
+    and the failed lookup leaves the stored patients unchanged.
+    """
+    before = clinic.data_store.list_patients()
+
     with pytest.raises(LookupError):
         clinic.patients.find_patient('p1')
+
+    assert clinic.data_store.list_patients() == before
 
 
 def test_unknown_patient_raises_lookup_error(clinic) -> None:
@@ -129,9 +135,15 @@ def test_find_practitioner_trims_surrounding_whitespace(clinic) -> None:
 
 
 def test_find_practitioner_is_case_sensitive(clinic) -> None:
-    """ID contract: d1 is a different, unregistered ID, so it is absent."""
+    """ID contract: d1 is a different, unregistered ID, so it is absent
+    and the failed lookup leaves the stored practitioners unchanged.
+    """
+    before = clinic.data_store.list_practitioners()
+
     with pytest.raises(LookupError):
         clinic.practitioners.find_practitioner('d1')
+
+    assert clinic.data_store.list_practitioners() == before
 
 
 def test_unknown_practitioner_raises_lookup_error(clinic) -> None:
