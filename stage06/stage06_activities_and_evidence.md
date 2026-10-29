@@ -153,7 +153,7 @@ Record meaningful required use, not every trivial completion. Repeat per signifi
 
 ### Emilio: patient lookup (#1)
 
-- Member and task: Emilio ; Copilot review comparison for the patient lookup part of PR #2
+- Member and task: Emilio; Copilot review comparison for the patient lookup part of PR #2
 - Prompt/purpose and relevant issue/diff: Stage 6 Part H review prompt with issue #1 criteria and the PR diff. [Output](https://github.com/BN007-CMD/st1-assignment-3/pull/2#pullrequestreview-5649880865)
 - Summary of output:
   - Important: the PR also implements `find_practitioner` and `cancel_appointment`, outside the FR-02 scope.
@@ -181,7 +181,7 @@ Record meaningful required use, not every trivial completion. Repeat per signifi
 
 ### Brendan: cancellation (#4)
 
-- Member and task: Brendan [surname]; Copilot review comparison for the cancellation part of PR #2
+- Member and task: Brendan; Copilot review comparison for the cancellation part of PR #2
 - Prompt/purpose and relevant issue/diff: Stage 6 Part H review prompt with issue #4 criteria (FR-06/FR-07) and the PR diff. [Output](https://github.com/BN007-CMD/st1-assignment-3/pull/2#issuecomment-6465411622)
 - Summary of output:
   - Critical: no blocking issue; the service delegates to `Appointment.cancel()` and does not delete or replace.
@@ -322,7 +322,6 @@ No change reaches main unless it traces from a requirement through a focused iss
 
 ## M Completion and handover
 
-## M Completion and handover
 - Starting SHA: `5ad6f803fe04665237f8405284bc2dddf3bd007b`
 - Final Stage 6 code SHA: `a74ea06a5fcdca236f1f220fa1219ebc98a7ca95` (merge of PR #2)
 - Test command: `python -m pytest`

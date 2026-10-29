@@ -5,7 +5,7 @@ Baseline: Stage 6 foundation, 2026 revision 2. This starter deliberately leaves 
 
 ## Group index
 
-## Group index
+
 - Group and tutorial: Online Group 4, Tuesday 17:30 tutorial
 - Member names, GitHub usernames and UG/PG cohorts:
   - Novica (@BN007-CMD), UG
