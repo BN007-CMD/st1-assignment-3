@@ -29,13 +29,16 @@ class PatientService:
         return patient
 
     def find_patient(self, patient_id: str) -> Patient:
-        """Stage 6 TODO: return the stored patient for a valid patient ID.
+        """Return the registered patient object for a valid patient ID.
 
-        Completion must raise LookupError for absence and ValueError for
-        a blank/invalid ID. It must not create a replacement patient.
-        The starter deliberately raises NotImplementedError.
+        The ID is trimmed and case-sensitive. Raise ValueError for a
+        blank or non-text ID and LookupError when a valid ID is not
+        registered. Never create or substitute a replacement patient.
         """
-        raise NotImplementedError('Stage 6: patient lookup')
+        patient = self.data_store.find_patient(patient_id)
+        if patient is None:
+            raise LookupError('Patient not found')
+        return patient
 
 
 class PractitionerService:
@@ -64,14 +67,17 @@ class PractitionerService:
         return practitioner
 
     def find_practitioner(self, practitioner_id: str) -> Practitioner:
-        """Stage 6 TODO: return the stored practitioner for a valid ID.
+        """Return the registered practitioner object for a valid ID.
 
-        Completion must raise LookupError for absence and ValueError for
-        a blank/invalid ID. It must not create a replacement
-        practitioner. The starter deliberately raises
-        NotImplementedError.
+        The ID is trimmed and case-sensitive. Raise ValueError for a
+        blank or non-text ID and LookupError when a valid ID is not
+        registered. Never create or substitute a replacement
+        practitioner.
         """
-        raise NotImplementedError('Stage 6: practitioner lookup')
+        practitioner = self.data_store.find_practitioner(practitioner_id)
+        if practitioner is None:
+            raise LookupError('Practitioner not found')
+        return practitioner
 
 
 class AppointmentService:
@@ -133,13 +139,15 @@ class AppointmentService:
         return appointment
 
     def cancel_appointment(self, appointment_id: str) -> Appointment:
-        """Stage 6: cancel through the domain method and retain the
-        appointment.
+        """Cancel a stored appointment through its domain transition.
 
-        Return the cancelled object. Unknown IDs raise LookupError;
-        invalid transitions raise ValueError and leave state unchanged.
+        Return the same retained object, now CANCELLED (FR-06, FR-07).
+        Blank/invalid IDs and illegal transitions raise ValueError; a
+        valid unknown ID raises LookupError. Failed calls change nothing.
         """
-        raise NotImplementedError('Stage 6: appointment cancellation')
+        appointment = self.find_appointment(appointment_id)
+        appointment.cancel()
+        return appointment
 
     def list_practitioner_appointments(
         self,
