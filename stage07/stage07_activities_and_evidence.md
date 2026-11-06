@@ -2,7 +2,7 @@
 
 - Group/tutorial: Online Group 4, Tuesday 17:30 tutorial 
 - Members, GitHub usernames and cohorts: Novica Baloski (@BN007-CMD, UG); Emilio Rojas-Terry (@ucemilio, UG); Quang Le,  (@quangle330, UG); Brendan Potter (@BrendoAC11, UG)
-Requirements baseline: SmartCare A3 Requirements Baseline 2026, revision 2.
+- Requirements baseline: SmartCare A3 Requirements Baseline 2026, revision 2.
 Use the same project/. Link actual evidence; keep responses concise. Blank fields are for your group. Copy rows only as needed.
 
 All Assignment 3 stage materials are provided from the beginning. Complete this stage only after the previous applicable stage has been integrated, verified and recorded. Use this supplied record in stage07/ in your EXISTING repository. Preserve project/, all earlier tests, records and responses. Do not download another starter or copy staff solutions.
@@ -363,7 +363,7 @@ Use links rather than copying GitHub history. Continue the Stage 6 workflow; no 
 
 | Issue/task | Branch | PR | Reviewer | Key feedback | Outcome |
 |---|---|---|---|---|---|
-| Stage07 | /feature/stage07-testing-and-evidence | N/A | Emilio took the lead on Stage07 and as below every other member assisted with evidence | N/A | Stage07 has been completed, and Jay will continue with Stage08 |
+| Stage07 | /feature/stage07-testing-and-evidence | https://github.com/BN007-CMD/st1-assignment-3/pull/6 | Emilio took the lead on Stage07 and as below every other member assisted with evidence | N/A | Stage07 has been completed, and Jay will continue with Stage08 |
 
 ## M Contribution Evidence
 
@@ -371,8 +371,8 @@ Record actual work in test design, implementation, review, traceability, diagnos
 
 | Member | Actual contribution | Evidence link |
 |---|---|---|
-| Emilio (Stage 7 lead) | Test design, traceability, implementation, integration | N/A - Throughout the lifecycle of Stage07 |
-| Novica | 11068b432586eb0c6ad9b90b357780da5aeb32f1, 86 passed in 0.18s, 78 passed in 0.11s &  78 passed in 0.14s, 1 passed in 0.03s 6 | Stage 7 Test-26.png |
+| Emilio (Stage 7 lead) | Test design, traceability, implementation, integration | 11068b432586eb0c6ad9b90b357780da5aeb32f1, 86 passed in 0.18s, 78 passed in 0.11s &  78 passed in 0.14s, 1 passed in 0.03s |
+| Novica | 11068b432586eb0c6ad9b90b357780da5aeb32f1, 86 passed in 0.18s, 78 passed in 0.11s &  78 passed in 0.14s, 1 passed in 0.03s | Stage 7 Test-26.png |
 | Jay | 11068b432586eb0c6ad9b90b357780da5aeb32f1, 86 passed in 0.24s, 78 passed in 0.08s & 78 passed in 0.08s, 1 passed in 0.03s | Stage 7 Test-32.png |
 | Brendan | 11068b432586eb0c6ad9b90b357780da5aeb32f1, 86 passed in 0.23s, 78 passed in 0.09s & 78 passed in 0.09s, 1 passed in 0.04s | Stage 7 Test-33.png |
 
@@ -410,7 +410,7 @@ Tests must trace to a requirement or contract, assert the required observable be
 
 ## O Stage Completion
 
-Tested Stage 7 main SHA: 11068b432586eb0c6ad9b90b357780da5aeb32f1, 86 passed in 0.12s
+Tested Stage 7 main SHA: 11068b432586eb0c6ad9b90b357780da5aeb32f1, 86 passed in 0.18s, 78 passed in 0.11s &  78 passed in 0.14s, 1 passed in 0.03s
 Full-suite result: Confirmed
 Unresolved defects and effect on baseline: Confirmed
 Clean working tree and integration evidence: Confirmed - nothing to commit, working tree clean
