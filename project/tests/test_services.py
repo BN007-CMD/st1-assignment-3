@@ -430,7 +430,6 @@ def test_same_practitioner_one_minute_later_is_allowed(clinic) -> None:
 
     assert clinic.data_store.list_appointments() == [first, later]
 
-
 def test_find_unknown_appointment_raises_lookup_error(clinic) -> None:
     """TEST-29: a valid but absent appointment ID reports absence."""
     with pytest.raises(LookupError):
@@ -455,3 +454,34 @@ def test_store_rejects_appointment_with_lookalike_patient(clinic) -> None:
         clinic.data_store.add_appointment(appointment)
 
     assert clinic.data_store.list_appointments() == []
+
+def test_exact_time_conflict_is_rejected_with_multiple_existing_appointments(
+    clinic,
+) -> None:
+    """TEST-32: AC-04.1 conflict rejected among several bookings."""
+    first = clinic.appointments.book_appointment('A1', 'P1', 'D1', NINE_AM)
+    second = clinic.appointments.book_appointment('A2', 'P2', 'D1', TEN_AM)
+
+    with pytest.raises(ValueError):
+        clinic.appointments.book_appointment('A3', 'P2', 'D1', TEN_AM)
+
+    assert clinic.data_store.list_appointments() == [first, second]
+    assert first.status is AppointmentStatus.SCHEDULED
+    assert second.status is AppointmentStatus.SCHEDULED
+    assert first.patient is clinic.alex
+    assert first.practitioner is clinic.taylor
+    assert first.date_time == NINE_AM
+
+
+def test_different_practitioner_same_time_allowed_in_populated_schedule(
+    clinic,
+) -> None:
+    """TEST-33: AC-04.2 with D2 booked at times D1 already holds."""
+    first = clinic.appointments.book_appointment('A1', 'P1', 'D1', NINE_AM)
+    second = clinic.appointments.book_appointment('A2', 'P2', 'D1', TEN_AM)
+    third = clinic.appointments.book_appointment('A3', 'P1', 'D2', NINE_AM)
+    fourth = clinic.appointments.book_appointment('A4', 'P2', 'D2', TEN_AM)
+
+    assert clinic.data_store.list_appointments() == [
+        first, second, third, fourth,
+    ] 
