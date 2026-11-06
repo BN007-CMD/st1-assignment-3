@@ -12,7 +12,7 @@ from types import SimpleNamespace
 import pytest
 
 from smartcare.data_store import SmartCareDataStore
-from smartcare.domain import Appointment, AppointmentStatus
+from smartcare.domain import Appointment, AppointmentStatus, Patient
 from smartcare.services import (
     AppointmentService,
     PatientService,
@@ -300,3 +300,158 @@ def test_cancelled_slot_can_be_booked_again(clinic) -> None:
     assert rebooked.status is AppointmentStatus.SCHEDULED
     assert original.status is AppointmentStatus.CANCELLED
     assert clinic.data_store.list_appointments() == [original, rebooked]
+
+# Stage 7 additions: registration, booking and conflict evidence.
+
+def test_register_patient_stores_the_returned_object(clinic) -> None:
+    """TEST-16: AC-01.1 stored through the service workflow."""
+    new_patient = clinic.patients.register_patient('P3', 'Jordan Example')
+
+    assert clinic.data_store.find_patient('P3') is new_patient
+    assert clinic.data_store.list_patients() == [
+        clinic.alex, clinic.sam, new_patient,
+    ]
+
+
+def test_duplicate_patient_id_keeps_the_original(clinic) -> None:
+    """TEST-17: AC-01.2 duplicate rejected, original not overwritten."""
+    with pytest.raises(ValueError):
+        clinic.patients.register_patient('P1', 'Different Name')
+
+    assert clinic.data_store.find_patient('P1') is clinic.alex
+    assert clinic.alex.name == 'Alex Example'
+    assert clinic.data_store.list_patients() == [clinic.alex, clinic.sam]
+
+
+def test_duplicate_patient_id_after_trimming_is_rejected(clinic) -> None:
+    """TEST-18: ' P1 ' is the same ID as P1."""
+    with pytest.raises(ValueError):
+        clinic.patients.register_patient(' P1 ', 'Different Name')
+
+    assert clinic.data_store.list_patients() == [clinic.alex, clinic.sam]
+
+
+def test_ids_differing_only_by_case_are_distinct(clinic) -> None:
+    """TEST-19: IDs are case-sensitive, so p1 may be registered."""
+    lower = clinic.patients.register_patient('p1', 'Case Example')
+
+    assert lower is not clinic.alex
+    assert clinic.data_store.find_patient('p1') is lower
+    assert clinic.data_store.find_patient('P1') is clinic.alex
+
+
+def test_duplicate_practitioner_id_keeps_the_original(clinic) -> None:
+    """TEST-20: duplicate practitioner rejected, original kept."""
+    with pytest.raises(ValueError):
+        clinic.practitioners.register_practitioner('D1', 'Other', 'Dental')
+
+    assert clinic.data_store.find_practitioner('D1') is clinic.taylor
+    assert clinic.taylor.specialty == 'General practice'
+    assert clinic.data_store.list_practitioners() == [
+        clinic.taylor, clinic.morgan,
+    ]
+
+
+def test_book_appointment_stores_a_scheduled_appointment(clinic) -> None:
+    """TEST-21: AC-03.1 and AC-06.1, booking with actual objects."""
+    booked = clinic.appointments.book_appointment('A1', 'P1', 'D1', NINE_AM)
+
+    assert booked.status is AppointmentStatus.SCHEDULED
+    assert booked.patient is clinic.alex
+    assert booked.practitioner is clinic.taylor
+    assert booked.date_time == NINE_AM
+    assert clinic.appointments.find_appointment('A1') is booked
+    assert clinic.data_store.list_appointments() == [booked]
+
+
+def test_booking_unknown_patient_is_rejected(clinic) -> None:
+    """TEST-22: AC-03.2 unknown patient raises LookupError."""
+    with pytest.raises(LookupError):
+        clinic.appointments.book_appointment('A1', 'P404', 'D1', NINE_AM)
+
+    assert clinic.data_store.list_appointments() == []
+
+
+def test_booking_unknown_practitioner_is_rejected(clinic) -> None:
+    """TEST-23: AC-03.2 unknown practitioner raises LookupError."""
+    with pytest.raises(LookupError):
+        clinic.appointments.book_appointment('A1', 'P1', 'D404', NINE_AM)
+
+    assert clinic.data_store.list_appointments() == []
+
+
+def test_booking_with_invalid_time_is_rejected(clinic) -> None:
+    """TEST-24: a time with seconds raises ValueError, nothing stored."""
+    with pytest.raises(ValueError):
+        clinic.appointments.book_appointment(
+            'A1', 'P1', 'D1', datetime(2026, 10, 1, 9, 0, 30),
+        )
+
+    assert clinic.data_store.list_appointments() == []
+
+
+def test_duplicate_appointment_id_keeps_the_original(clinic) -> None:
+    """TEST-25: a reused appointment ID does not overwrite."""
+    original = clinic.appointments.book_appointment('A1', 'P1', 'D1', NINE_AM)
+
+    with pytest.raises(ValueError):
+        clinic.appointments.book_appointment('A1', 'P2', 'D2', TEN_AM)
+
+    assert clinic.appointments.find_appointment('A1') is original
+    assert original.date_time == NINE_AM
+    assert clinic.data_store.list_appointments() == [original]
+
+
+def test_same_practitioner_same_time_conflicts(clinic) -> None:
+    """TEST-26: AC-04.1 conflict rejected, existing booking untouched."""
+    first = clinic.appointments.book_appointment('A1', 'P1', 'D1', NINE_AM)
+
+    with pytest.raises(ValueError):
+        clinic.appointments.book_appointment('A2', 'P2', 'D1', NINE_AM)
+
+    assert first.status is AppointmentStatus.SCHEDULED
+    assert clinic.data_store.list_appointments() == [first]
+
+
+def test_different_practitioner_same_time_is_allowed(clinic) -> None:
+    """TEST-27: AC-04.2 the conflict rule is per practitioner."""
+    first = clinic.appointments.book_appointment('A1', 'P1', 'D1', NINE_AM)
+    second = clinic.appointments.book_appointment('A2', 'P2', 'D2', NINE_AM)
+
+    assert clinic.data_store.list_appointments() == [first, second]
+
+
+def test_same_practitioner_one_minute_later_is_allowed(clinic) -> None:
+    """TEST-28: boundary of the exact-time rule (no duration overlap)."""
+    first = clinic.appointments.book_appointment('A1', 'P1', 'D1', NINE_AM)
+    later = clinic.appointments.book_appointment(
+        'A2', 'P2', 'D1', datetime(2026, 10, 1, 9, 1),
+    )
+
+    assert clinic.data_store.list_appointments() == [first, later]
+
+
+def test_find_unknown_appointment_raises_lookup_error(clinic) -> None:
+    """TEST-29: a valid but absent appointment ID reports absence."""
+    with pytest.raises(LookupError):
+        clinic.appointments.find_appointment('A404')
+
+
+@pytest.mark.parametrize('bad_id', ['', '   ', None, 101])
+def test_find_appointment_invalid_id_raises_value_error(
+    clinic, bad_id,
+) -> None:
+    """TEST-30: an invalid ID is a ValueError, not absence."""
+    with pytest.raises(ValueError):
+        clinic.appointments.find_appointment(bad_id)
+
+
+def test_store_rejects_appointment_with_lookalike_patient(clinic) -> None:
+    """TEST-31: same ID, but not the registered object, is rejected."""
+    lookalike = Patient('P1', 'Alex Example')
+    appointment = Appointment('A1', lookalike, clinic.taylor, NINE_AM)
+
+    with pytest.raises(ValueError):
+        clinic.data_store.add_appointment(appointment)
+
+    assert clinic.data_store.list_appointments() == []
