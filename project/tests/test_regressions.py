@@ -27,10 +27,10 @@ def store_and_appointments():
     data_store = SmartCareDataStore()
     patients = PatientService(data_store)
     practitioners = PractitionerService(data_store)
-    patients.register_patient('P1', 'Alex Example')
-    patients.register_patient('P2', 'Sam Example')
-    practitioners.register_practitioner('D1', 'Taylor Example', 'General')
-    practitioners.register_practitioner('D2', 'Morgan Example', 'Physio')
+    patients.register_patient('P1', 'Dame Example')
+    patients.register_patient('P2', 'Giannis Example')
+    practitioners.register_practitioner('D1', 'Lebron Example', 'General')
+    practitioners.register_practitioner('D2', 'Chris Example', 'Physio')
     return data_store, AppointmentService(data_store)
 
 
