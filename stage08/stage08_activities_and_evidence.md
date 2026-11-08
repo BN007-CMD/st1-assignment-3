@@ -6,7 +6,7 @@ All Assignment 3 stage materials are provided from the beginning. Complete this 
 
 Group/tutorial: Online Group 4, Tuesday 17:30 tutorial
 Members and UG/PG cohorts: Novica Baloski (@BN007-CMD, UG); Emilio Rojas-Terry (@ucemilio, UG); Quang Le, (@quangle330, UG); Brendan Potter (@BrendoAC11, UG)
-Record owner / contribution links for each member:
+Record owner / contribution links for each member: Quang Le, stage 8 lead, for contribution links, see I.
 
 Use concise results and accessible artefact links rather than copying entire logs. Keep human-first entries before consulting GitHub Copilot. Link shared evidence once; do not repeat it across sections. No entries below are specimen answers or claimed results.
 
@@ -110,11 +110,11 @@ Traceback — exception/assertion; expected/observed values; test line; call pat
 
 - Symptom / observed behaviour: the conflict rule behaves the wrong way round for practitioners. Booking the same practitioner (D1) at the same time twice is accepted (no ValueError). Booking a different practitioner (D2) at a time D1 already holds is rejected with ValueError: Practitioner already has a SCHEDULED appointment at this time. In the same run, D1 one minute later (TEST-28) and rebooking a cancelled slot still pass.
 - Expected behaviour and requirement: FR-05/AC-04.1: a booking is rejected with ValueError when the same practitioner already has a SCHEDULED appointment at the same date/time, and stored state is unchanged. AC-04.2: a booking at the same date/time for a different practitioner is allowed. No patient-conflict or duration-overlap rule exists.
-- Minimal synthetic reproduction steps: fresh SmartCareDataStore; register P1 "Dame Example", P2 "Giannis Example", D1 "Lebron Example" (General practice), D2 "Chris Example" (Physiotherapy). (a) Book A1 = P1/D1 at 2026-10-10 09:00, then A2 = P2/D1 at 09:00 → expected ValueError and list_appointments() == [A1]; observed: A2 is stored. (b) In a fresh store, book A1 = P1/D1 at 09:00, then A2 = P2/D2 at 09:00 → expected both stored; observed: ValueError.
+- Minimal synthetic reproduction steps: fresh SmartCareDataStore; register P1 "Dame Example", P2 "Giannis Example", D1 "Lebron Example" (General), D2 "Chris Example" (Physio). (a) Book A1 = P1/D1 at 2026-10-10 09:00, then A2 = P2/D1 at 09:00 → expected ValueError and list_appointments() == [A1]; observed: A2 is stored. (b) In a fresh store, book A1 = P1/D1 at 09:00, then A2 = P2/D2 at 09:00 → expected both stored; observed: ValueError.
 - Meaningful failing test path/name and exact relevant failure: project/tests/test_services.py::test_same_practitioner_same_time_conflicts (test-26), Failed: DID NOT RAISE class 'ValueError'; and ::test_different_practitioner_same_time_is_allowed (test-27), ValueError: Practitioner already has a SCHEDULED appointment at this time, raised from services.py after data_store.has_practitioner_conflict(...) returned True. Also detected by test-32, test-33 and test_starter.py::test_conflict_rule_and_different_practitioner. Focused regression test: project/tests/test_regressions.py::test_f8_01_conflict_is_per_practitioner_at_exact_time. Focused regression test: project/tests/test_regressions.py::test_f8_01_conflict_is_per_practitioner_at_exact_time. Before repair, at 02cffab: tests\test_regressions.py:47: Failed: DID NOT RAISE class 'ValueError', so the same-practitioner booking was accepted.
 - Human hypothesis and intended checks: see E, F8-01.
 - Supported root cause and inspected code/runtime evidence: SmartCareDataStore.has_practitioner_conflict (project/smartcare/data_store.py, line 110) tests appointment.practitioner.practitioner_id != practitioner_id where AC-04.1 requires ==, so a conflict is reported only for other practitioners. Runtime check (fresh store, A1 booked for D1 at 2026-10-01 09:00, store called directly): has_practitioner_conflict('D1', 09:00) → False (expected True); has_practitioner_conflict('D2', 09:00) → True (expected False). The store alone gives the inverted answers, and the TEST-27 traceback shows the service passed practitioner_id = 'D2', which rules out the competing explanation that the service passes the wrong ID.
-- Smallest justified fix / diff / why other behaviour is preserved: 2ef8a3a092d8784bdffdc2f445d4d15c499103ba; python -m pytest tests/test_regressions.py::test_f8_01_conflict_is_per_practitioner_at_exact_time -q from project/ → 1 passed in 0.01s.
+- Smallest justified fix / diff / why other behaviour is preserved: in has_practitioner_conflict, change appointment.practitioner.practitioner_id != practitioner_id to == practitioner_id; one operator on one line, nothing else. The faulty decision matched appointments belonging to other practitioners; == restricts the check to the requested practitioner, as AC-04.1 states. The other three conditions are untouched (the excluded appointment ID, the exact date_time match and SCHEDULED-only status), so one-minute-later bookings (TEST-28), rebooking a cancelled slot and AC-04.2 different-practitioner bookings behave as before. No service or test code changed. Confirmed by the record owner with git show 2ef8a3a --stat: only project/smartcare/data_store.py changed.
 - Repair SHA / focused verification result: 2ef8a3a092d8784bdffdc2f445d4d15c499103ba; python -m pytest tests/test_regressions.py::test_f8_01_conflict_is_per_practitioner_at_exact_time -q from project/ → 1 passed in 0.01s.
 
 ## D. F8-02 diagnosis and repair
@@ -169,10 +169,10 @@ Actual prompt / output reference and member: Quang Le. Handout prompt structure,
 | F8-01 after repair | 2ef8a3a092d8784bdffdc2f445d4d15c499103ba | python -m pytest tests/test_regressions.py::test_f8_01_conflict_is_per_practitioner_at_exact_time -q from project/ | 1 passed in 0.01s |
 | F8-02 before repair | 02cffab4e2b8d07b911e7f7169a69db2805567ca | same run as F8-01 before repair | test_f8_02_cancelled_appointment_is_still_found failed: assert None is <Appointment> at line 74; status and list assertions passed first |
 | F8-02 after repair | afb89ad9e9287c7f0f836fedf8b93640a527ac1b | python -m pytest tests/test_regressions.py::test_f8_02_cancelled_appointment_is_still_found -q from project/ | 1 passed in 0.01s |
-| Full suite after both repairs, before refactor | afb89ad9e9287c7f0f836fedf8b93640a527ac1b | python -m pytest -q from project/ | 88 passed in 0.06s (86 retained + 2 regression tests; all 9 earlier failures now pass) |
+| Full suite after both repairs, before refactor | afb89ad9e9287c7f0f836fedf8b93640a527ac1b | python -m pytest -q from project/ | 88 passed in 0.06s (86 retained + 2 regression tests; all 7 plus the 2 regression test failures now pass) |
 
 Explain how the assertions detect each relevant incorrect result and protect previous behaviour:
-- F8-01: pytest.raises(ValueError) on the second D1 booking at 09:00 fails if a same-practitioner conflict is accepted (this is what failed before repair). list_appointments() == [first] and find_appointment('A2') is None fail if a rejected booking is stored anyway. The D2 booking at the same time, followed by list_appointments() == [first, other], fails if the check over-matches other practitioners, the other half of the inverted defect (AC-04.2). The retained TEST-26/27/28/32/33 and starter tests protect the surrounding conflict behaviour, including the exact-time boundary.
+- F8-01: pytest.raises(ValueError) on the second D1 booking at 09:00 fails if a same-practitioner conflict is accepted (this is what failed before repair). list_appointments() == [first] and find_appointment('A2') is None fail if a rejected booking is stored anyway. The D2 booking at the same time, followed by list_appointments() == [first, other], covers the other half of the inverted defect (AC-04.2): it would fail if the check over-matched other practitioners. Before repair this part did not run, because the test stopped at the pytest.raises on line 47. The AC-04.2 failure before repair is shown instead by TEST-27 and TEST-33 (see B). After repair, this test protects both directions. The retained TEST-26/27/28/32/33 and starter tests protect the surrounding conflict behaviour, including the exact-time boundary.
 - F8-02: booked.status is CANCELLED and list_appointments() == [booked] show the transition and retention. data_store.find_appointment('A1') is booked (the assertion that failed before repair) and appointments.find_appointment('A1') is booked check store and service lookup separately, by identity, so None and LookupError are not confused and a replacement copy would fail. The repeated-cancel pytest.raises(ValueError), with status and list unchanged afterwards, protects AC-05.3. The retained Stage 6 cancellation tests protect unknown/invalid ID handling, COMPLETED rejection and rebooking.
 Unrelated failures investigated / resolution: Not applicable. All 7 failures in the initial prepared run are conflict tests (F8-01) or cancelled-lookup tests (F8-02); see B.
 
@@ -192,14 +192,18 @@ Result — accepted, revised or rejected / reason / behaviour-preservation concl
 
 ## I. Git, human review and integration
 
-Issues for both defects / refactor scope and owners: [complete]
-Branch / prepared, repair and refactor checkpoints: [link B/C/D/H]
-PR link and another member's reviewer identity: [complete]
-Key human feedback, difference from Copilot findings and response/outcome: [complete]
-Actual review approval / merge evidence: [complete]
-Integrated code SHA and team pull/retest command / working directory / result: [complete]
-Evidence-only later SHA / explanation if different: [complete or not applicable]
-Each member's substantive contribution and artefact: [complete]
+Issues for both defects / refactor scope and owners (owner for all three: Quang (Jay), @quangle330):
+
+- #8: practitioner conflict check matches the wrong practitioner (F8-01, FR-05; AC-04.1/04.2). Scope: has_practitioner_conflict plus a regression test.
+- #9: cancelled appointments cannot be found after cancellation (F8-02, FR-07; AC-05.2/05.3). Scope: find_appointment plus a regression test.
+- #10: replace the magic status string in the conflict check with the AppointmentStatus enum (refactor only; one condition in data_store.py). Branch / prepared, repair and refactor checkpoints: see B (prepared), C and D (repairs), H (refactor). PR link and another member's reviewer identity: https://github.com/BN007-CMD/st1-assignment-3/pull/11#issue-6268736524. Reviewers: Emilio (F8-01, #8), Brendan (F8-02, #9), Novica (refactor and record, #10). Key human feedback, difference from Copilot findings and response/outcome:
+- Novica (#10): [review;](https://github.com/BN007-CMD/st1-assignment-3/pull/11#pullrequestreview-5817138689) confirmed 3a1b426 is a one-line structural change, edits no test and is a separate commit after both repairs. She checked B and G against the history (b05c79a 86 passed → dec5a44 7 failed → 02cffab 9 failed → afb89ad 88 passed); her run gave 88 passed in 0.13s on 3a1b426. She requested changes: section H was still placeholders in the repository, and commit 90b26fd (before the refactor) did not contain the H plan its message implied. Response: H completed in 27cd375, and a process note added to H recording that the plan was not committed before the refactor. She rechecked (88 passed in 0.13s on 27cd375) and approved. Difference from Copilot: Copilot was asked only about causes. It never checked commit order, the consistency between the record and the history, or whether a commit message matched its content. Only the human review found the process gap.
+- Emilio (#8): [review](https://github.com/BN007-CMD/st1-assignment-3/pull/11#pullrequestreview-5817136201). Branch run 88 passed in 0.12s on 3a1b426; before-repair check at 02cffab gave 2 failed in 0.09s, with the F8-01 test failing at line 47 (DID NOT RAISE ValueError) as recorded. He confirmed the fix is the one-line != → == change, the regression test checks both directions with unchanged state, and the F8-01 Copilot decisions match the evidence. He requested record-only changes: (1–2) C fix-field wording and a duplicated sentence, which were not present in the current record (likely an older pushed copy) and which he was asked to recheck; (3) reconcile 7 vs 9 failures in G, fixed; (4) say the AC-04.2 half of the regression test did not run before repair and that TEST-27/33 show that failure, fixed; minor: align the specialty wording in C with the fixture, fixed. Difference from Copilot: he independently reran the before-repair state and checked the record's internal consistency and the test's execution path; Copilot did neither. His approval was given in this same review, submitted as a comment rather than through GitHub's formal Approve option.
+- Brendan (#9): [post-merge review](https://github.com/BN007-CMD/st1-assignment-3/pull/11#issuecomment-6720219065) (see the process deviation under approval/merge evidence). He confirmed the fix removes only the status.value != "cancelled" condition; the regression test checks store and service lookup separately and a repeated cancellation raises ValueError; and blank or non-text IDs still raise ValueError through the existing isinstance/strip() guard in find_appointment. He agreed with marking Copilot's "service turns None into LookupError" point as Modify rather than Accept. His run: 88 passed in 0.13s on 27cd375 (the PR branch head). No changes requested; he stated he was happy to approve. Difference from Copilot: he checked that invalid-ID validation survived the repair, which none of Copilot's F8-02 suggestions addressed. His before-repair check at 02cffab gave 2 failed in 0.06s, with the F8-02 test failing on AssertionError: assert None is <smartcare.domain.Appointment ...> as recorded. Actual review approval / merge evidence:
+- Quang, Stage 8 lead: safe preparation of debug/stage08 with the tutor; reproduced both defects and recorded observed and expected behaviour (B, C, D); wrote and ran the direct store checks; added project/tests/test_regressions.py (02cffab); recorded hypotheses before Copilot (E); ran and evaluated both Copilot consultations (F); made the two minimal repairs (2ef8a3a, afb89ad) and the refactor (3a1b426); opened issues #8–#10 and PR #11; wrote the reviewer instructions; responded to review feedback (27cd375 and later record commits); merged and retested (88 passed on b3a3b58); maintained this record.
+- Novica: reviewed the refactor and the record (#10); checked commit order and the B/G SHAs against the history; found that the H plan had not been committed before the refactor, which led to 27cd375 and the H process note; rechecked and approved; after-merge run 88 passed on b3a3b58. Artefact: [review.](https://github.com/BN007-CMD/st1-assignment-3/pull/11#pullrequestreview-5817138689)
+- Emilio: reviewed the F8-01 fix and regression test (#8); independently reran the before-repair state at 02cffab (2 failed); requested record corrections in C and G (7 vs 9 reconciliation, the AC-04.2 execution path, specialty wording); after-merge run 88 passed on b3a3b58. Artefact: [review.](https://github.com/BN007-CMD/st1-assignment-3/pull/11#pullrequestreview-5817136201)
+- Brendan: post-merge review of the F8-02 fix and regression test (#9), confirming the minimal diff, separate store and service lookup checks, retained invalid-ID validation and the Copilot Modify decision; independently reran the before-repair state at 02cffab (2 failed, F8-02 failing at the store lookup); branch run 88 passed on 27cd375; after-merge run 88 passed on b3a3b58. Artefact: [review.](https://github.com/BN007-CMD/st1-assignment-3/pull/11#issuecomment-6720219065)
 
 ## J. Required reflections
 
@@ -254,18 +258,18 @@ Response: Do not change code until the failure is reproduced, the expected behav
 
 ## L. Completion and handover
 
-- [ ] Existing project, earlier tests and stage records preserved.
-- [ ] Passing Stage 7 SHA and safe preparation details recorded.
-- [ ] Both defects reproduced with meaningful failing tests.
-- [ ] Both human hypotheses recorded before Copilot; actual suggestions evaluated with evidence.
-- [ ] Supported causes and minimal repairs explained; focused and full regression results recorded.
-- [ ] One genuine refactor verified under passing before/after tests.
-- [ ] Human PR review, feedback resolution and integrated retest recorded.
-- [ ] Tutorial, three reflections and ten formative responses complete.
-- [ ] Local recovery metadata excluded from submitted source.
-- [ ] Same project and full suite ready for Stage 9 after Stage 8 integration, verification and recording.
+- [x] Existing project, earlier tests and stage records preserved.
+- [x] Passing Stage 7 SHA and safe preparation details recorded.
+- [x] Both defects reproduced with meaningful failing tests.
+- [x] Both human hypotheses recorded before Copilot; actual suggestions evaluated with evidence.
+- [x] Supported causes and minimal repairs explained; focused and full regression results recorded.
+- [x] One genuine refactor verified under passing before/after tests.
+- [x] Human PR review, feedback resolution and integrated retest recorded.
+- [x] Tutorial, three reflections and ten formative responses complete.
+- [x] Local recovery metadata excluded from submitted source.
+- [x] Same project and full suite ready for Stage 9 after Stage 8 integration, verification and recording.
 
 Verified integrated code SHA / result: see I.
-Submitted SHA and evidence-only difference if any: [complete]
-Unresolved issues or incomplete checks / owner / next action: [complete]
-Handover note: [complete]
+Submitted SHA and evidence-only difference if any: verified integrated code SHA b3a3b5800276979112cf7329ac5bb08c62bbb86f (88 passed for all four members). The submitted SHA will be the merge of the docs/stage08-evidence PR, which adds only this record and no executable changes. As in Stage 6, a file cannot contain its own future commit SHA, so that SHA is reported at submission.
+Unresolved issues or incomplete checks / owner / next action: no unresolved code defects; both are repaired and the suite passes.
+The project is now ready for stage 9 using the main branch.
