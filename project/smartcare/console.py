@@ -5,7 +5,7 @@ import re
 from datetime import datetime
 
 from smartcare.data_store import SmartCareDataStore
-from smartcare.domain import Appointment
+from smartcare.domain import Appointment, AppointmentStatus
 from smartcare.services import (
     AppointmentService,
     PatientService,
