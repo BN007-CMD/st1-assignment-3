@@ -4,9 +4,9 @@ UG and PG | One evolving group project | Complete this blank record using the St
 
 All Assignment 3 stage materials are provided from the beginning. Complete this stage only after the previous applicable stage has been integrated, verified and recorded. Use this supplied record in stage08/ in your EXISTING repository. Preserve project/, all earlier tests, records and responses. Do not download another starter or copy staff solutions. The Stage 8 preparation utility is supplied or run by teaching staff when Stage 8 begins. Follow your tutor’s controlled workflow and the handout. If temporarily supplied, keep it outside the repository in a sibling Stage_8_Assets/ folder; exclude it from Git and the final submission.
 
-Group/tutorial: [complete]
-Members and UG/PG cohorts: [complete]
-Record owner / contribution links for each member: [complete]
+Group/tutorial: Online Group 4, Tuesday 17:30 tutorial
+Members and UG/PG cohorts: Novica Baloski (@BN007-CMD, UG); Emilio Rojas-Terry (@ucemilio, UG); Quang Le, (@quangle330, UG); Brendan Potter (@BrendoAC11, UG)
+Record owner / contribution links for each member:
 
 Use concise results and accessible artefact links rather than copying entire logs. Keep human-first entries before consulting GitHub Copilot. Link shared evidence once; do not repeat it across sections. No entries below are specimen answers or claimed results.
 
@@ -114,8 +114,8 @@ Traceback — exception/assertion; expected/observed values; test line; call pat
 - Meaningful failing test path/name and exact relevant failure: project/tests/test_services.py::test_same_practitioner_same_time_conflicts (test-26), Failed: DID NOT RAISE class 'ValueError'; and ::test_different_practitioner_same_time_is_allowed (test-27), ValueError: Practitioner already has a SCHEDULED appointment at this time, raised from services.py after data_store.has_practitioner_conflict(...) returned True. Also detected by test-32, test-33 and test_starter.py::test_conflict_rule_and_different_practitioner. Focused regression test: project/tests/test_regressions.py::test_f8_01_conflict_is_per_practitioner_at_exact_time. Focused regression test: project/tests/test_regressions.py::test_f8_01_conflict_is_per_practitioner_at_exact_time. Before repair, at 02cffab: tests\test_regressions.py:47: Failed: DID NOT RAISE class 'ValueError', so the same-practitioner booking was accepted.
 - Human hypothesis and intended checks: see E, F8-01.
 - Supported root cause and inspected code/runtime evidence: SmartCareDataStore.has_practitioner_conflict (project/smartcare/data_store.py, line 110) tests appointment.practitioner.practitioner_id != practitioner_id where AC-04.1 requires ==, so a conflict is reported only for other practitioners. Runtime check (fresh store, A1 booked for D1 at 2026-10-01 09:00, store called directly): has_practitioner_conflict('D1', 09:00) → False (expected True); has_practitioner_conflict('D2', 09:00) → True (expected False). The store alone gives the inverted answers, and the TEST-27 traceback shows the service passed practitioner_id = 'D2', which rules out the competing explanation that the service passes the wrong ID.
-- Smallest justified fix / diff / why other behaviour is preserved: [complete]
-- Repair SHA / focused verification result: [complete]
+- Smallest justified fix / diff / why other behaviour is preserved: 2ef8a3a092d8784bdffdc2f445d4d15c499103ba; python -m pytest tests/test_regressions.py::test_f8_01_conflict_is_per_practitioner_at_exact_time -q from project/ → 1 passed in 0.01s.
+- Repair SHA / focused verification result: 2ef8a3a092d8784bdffdc2f445d4d15c499103ba; python -m pytest tests/test_regressions.py::test_f8_01_conflict_is_per_practitioner_at_exact_time -q from project/ → 1 passed in 0.01s.
 
 ## D. F8-02 diagnosis and repair
 
@@ -125,8 +125,8 @@ Traceback — exception/assertion; expected/observed values; test line; call pat
 - Meaningful failing test path/name and exact relevant failure: project/tests/test_services.py::test_cancelled_appointment_is_retained_as_history, line 201 (assert clinic.appointments.find_appointment('A1') is booked) → LookupError: Appointment not found at services.py:138. Also ::test_repeated_cancellation_is_rejected_without_change, line 225 → LookupError via services.py:148 (cancel_appointment → find_appointment). Focused regression test: project/tests/test_regressions.py::test_f8_02_cancelled_appointment_is_still_found. Before repair, at 02cffab: the status and list assertions passed, then tests\test_regressions.py:74: AssertionError: assert None is smartcare.domain.Appointment from data_store.find_appointment('A1').
 - Human hypothesis and intended checks: see E, F8-02.
 - Supported root cause and inspected code/runtime evidence: SmartCareDataStore.find_appointment (project/smartcare/data_store.py, lines 92–95) skips any appointment whose status.value is "cancelled", so a stored, cancelled appointment returns None. That breaks the store contract (None only for a valid missing ID) and FR-07/AC-05.2. Runtime check after booking and cancelling A1 in a fresh store: status: AppointmentStatus.CANCELLED, still listed: True, store find: None. The record is retained and the transition happened, so the competing explanation that cancellation removes or re-keys the record is ruled out, and only lookup fails. The regression test shows the same order: the status and list assertions pass, and the store lookup fails.
-- Smallest justified fix / diff / why other behaviour is preserved: [complete]
-- Repair SHA / focused verification result: [complete]
+- Smallest justified fix / diff / why other behaviour is preserved: in find_appointment, delete the condition and appointment.status.value != "cancelled", so the match is if appointment.appointment_id == appointment_id.strip():; nothing else. The faulty decision treated a CANCELLED status as "not found", contradicting the store contract (None only for a valid missing ID) and FR-07/AC-05.2. Removing only that filter returns every stored appointment by ID regardless of status. Unchanged: blank, whitespace-only and non-text IDs still raise ValueError from the existing guard; a missing ID still returns None; IDs are still trimmed and case-sensitive; the service still maps None to LookupError; and repeated cancellation now reaches Appointment.cancel(), which raises ValueError and leaves the status CANCELLED (AC-05.3). The remaining string comparison and hand-written guard are left for H rather than changed during repair. Confirmed by the record owner with git show afb89ad --stat: only project/smartcare/data_store.py changed.
+- Repair SHA / focused verification result: afb89ad9e9287c7f0f836fedf8b93640a527ac1b; python -m pytest tests/test_regressions.py::test_f8_02_cancelled_appointment_is_still_found -q from project/ → 1 passed in 0.01s.
 
 ## E. Human-first hypotheses
 
@@ -166,13 +166,15 @@ Actual prompt / output reference and member: Quang Le. Handout prompt structure,
 | Checkpoint | Code SHA or precise diff | Command and working directory | Actual result and artefact reference |
 |---|---|---|---|
 | F8-01 before repair | 02cffab4e2b8d07b911e7f7169a69db2805567ca (prepared faults + regression tests) | python -m pytest tests/test_regressions.py -q from project/ | test_f8_01_conflict_is_per_practitioner_at_exact_time failed: DID NOT RAISE <class 'ValueError'> at line 47 (2 failed in 0.05s for the file) |
-| F8-01 after repair | [complete] | [complete] | [complete] |
+| F8-01 after repair | 2ef8a3a092d8784bdffdc2f445d4d15c499103ba | python -m pytest tests/test_regressions.py::test_f8_01_conflict_is_per_practitioner_at_exact_time -q from project/ | 1 passed in 0.01s |
 | F8-02 before repair | 02cffab4e2b8d07b911e7f7169a69db2805567ca | same run as F8-01 before repair | test_f8_02_cancelled_appointment_is_still_found failed: assert None is <Appointment> at line 74; status and list assertions passed first |
-| F8-02 after repair | [complete] | [complete] | [complete] |
-| Full suite after both repairs, before refactor | [complete] | [complete] | [complete] |
+| F8-02 after repair | afb89ad9e9287c7f0f836fedf8b93640a527ac1b | python -m pytest tests/test_regressions.py::test_f8_02_cancelled_appointment_is_still_found -q from project/ | 1 passed in 0.01s |
+| Full suite after both repairs, before refactor | afb89ad9e9287c7f0f836fedf8b93640a527ac1b | python -m pytest -q from project/ | 88 passed in 0.06s (86 retained + 2 regression tests; all 9 earlier failures now pass) |
 
-Explain how the assertions detect each relevant incorrect result and protect previous behaviour: [complete]
-Unrelated failures investigated / resolution: [complete or not applicable with reason]
+Explain how the assertions detect each relevant incorrect result and protect previous behaviour:
+- F8-01: pytest.raises(ValueError) on the second D1 booking at 09:00 fails if a same-practitioner conflict is accepted (this is what failed before repair). list_appointments() == [first] and find_appointment('A2') is None fail if a rejected booking is stored anyway. The D2 booking at the same time, followed by list_appointments() == [first, other], fails if the check over-matches other practitioners, the other half of the inverted defect (AC-04.2). The retained TEST-26/27/28/32/33 and starter tests protect the surrounding conflict behaviour, including the exact-time boundary.
+- F8-02: booked.status is CANCELLED and list_appointments() == [booked] show the transition and retention. data_store.find_appointment('A1') is booked (the assertion that failed before repair) and appointments.find_appointment('A1') is booked check store and service lookup separately, by identity, so None and LookupError are not confused and a replacement copy would fail. The repeated-cancel pytest.raises(ValueError), with status and list unchanged afterwards, protects AC-05.3. The retained Stage 6 cancellation tests protect unknown/invalid ID handling, COMPLETED rejection and rebooking.
+Unrelated failures investigated / resolution: Not applicable. All 7 failures in the initial prepared run are conflict tests (F8-01) or cancelled-lookup tests (F8-02); see B.
 
 ## H. Refactoring decision and before/after verification
 
