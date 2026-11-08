@@ -178,13 +178,13 @@ Unrelated failures investigated / resolution: Not applicable. All 7 failures in 
 
 ## H. Refactoring decision and before/after verification
 
-Smell and exact location: [complete]
-Small proposed structural change / why justified: [complete before editing]
-External behaviour to preserve / relevant tests: [complete]
+Smell and exact location: magic status string in SmartCareDataStore.has_practitioner_conflict (project/smartcare/data_store.py, the last condition of the loop): appointment.status.value == "scheduled". It compares the enum's raw string value instead of the AppointmentStatus member that is already imported and used everywhere else. It duplicates knowledge of the enum's internal value, a typo would silently disable conflict detection, and it is inconsistent with the domain and tests, which compare members with is. Also seen but deliberately not changed: find_appointment re-implements ID validation and scans a list instead of self._appointments.get(required_text(...)) like the other find_* methods. Changing it would alter the ValueError message text and enlarge the diff, so it is out of scope for one small refactor.
+Small proposed structural change / why justified: replace appointment.status.value == "scheduled" with appointment.status is AppointmentStatus.SCHEDULED; one condition on one line, no other edit. Justified because it removes a magic string using the existing enum (the A.4 example), with no new abstraction or dependency. It is behaviour-preserving because the conflict tests (TEST-26, TEST-32) pass at afb89ad, which is only possible if "scheduled" currently equals AppointmentStatus.SCHEDULED.value. Each appointment's status is always an AppointmentStatus member (TEST-15), so both forms select exactly the same appointments.
+External behaviour to preserve / relevant tests: a conflict is reported only for the same practitioner, at the exact same date_time, with a SCHEDULED appointment that is not the excluded ID. CANCELLED and COMPLETED appointments never block a booking; a rejected booking raises ValueError and leaves the store unchanged; no records are mutated. Protected by test_regressions.py::test_f8_01_conflict_is_per_practitioner_at_exact_time, TEST-26, 27, 28, 32, 33, test_cancelled_slot_can_be_booked_again (CANCELLED does not block), test_starter.py::test_conflict_rule_and_different_practitioner, and the full suite (88 passed at afb89ad).
 Before result: see G, full passing suite.
-Actual change / diff / separate refactor SHA: [complete]
-Focused and full after-refactor commands / working directory / results / evidence: [complete]
-Result — accepted, revised or rejected / reason / behaviour-preservation conclusion: [complete]
+Actual change / diff / separate refactor SHA: 3a1b4265e38eac3512e1cbfdbf5d4a7c11523f2f, a separate commit after both repairs. One line in project/smartcare/data_store.py (has_practitioner_conflict)
+Focused and full after-refactor commands / working directory / results / evidence: from project/: python -m pytest tests/test_regressions.py tests/test_services.py tests/test_starter.py -q → 61 passed in 0.05s; python -m pytest -q → 88 passed in 0.06s, the same as before the refactor (88 passed at afb89ad, see G).
+Result — accepted, revised or rejected / reason / behaviour-preservation conclusion: Accepted. The magic string is replaced by the existing enum member, matching how the domain and tests compare statuses and removing the risk that a mistyped string silently disables conflict detection. Behaviour is preserved: the same 88 tests pass before and after, with no test changed, including the F8-01 regression test, the AC-04.1/04.2 conflict tests, the exact-time boundary and the cancelled-slot rebooking test. That shows the same appointments still count as conflicts. Return values, exception types and non-mutation are unchanged, because only the comparison expression changed.
 
 ## I. Git, human review and integration
 
@@ -199,51 +199,54 @@ Each member's substantive contribution and artefact: [complete]
 
 ## J. Required reflections
 
-1. Which Copilot diagnosis appeared convincing but lacked evidence? [complete; report honestly if none and discuss the least-supported real suggestion]
-2. What evidence changed your group's view? [complete]
-3. How did regression tests protect the refactoring? [complete]
+1. Which Copilot diagnosis appeared convincing but lacked evidence? 
+- F8-02 suggestion 2: "the service turns the store's None into LookupError". It looked convincing because the traceback ends in services.py:138, where the LookupError is actually raised, so it would be easy to "fix" the service there. But no evidence showed the service behaving incorrectly. services.py was unchanged by preparation, and mapping store None to service LookupError is the required contract. Our direct store call returning None for a still-listed appointment showed the service was only reporting a miss that happened earlier in the store. The suggestion described where the failure was observed, not where it was caused. For F8-01, Copilot's alternatives (wrong ID from the service; mismatched time or status) were less convincing and were already ruled out by the traceback and the direct store results.
+2. What evidence changed your group's view?
+- Our hypotheses did not change, but specific evidence moved them from plausible to supported. For F8-01, calling has_practitioner_conflict directly on the store (D1 → False, D2 → True) removed the service from suspicion. For F8-02, still listed: True with store find: None ruled out the "cancellation removes the record" explanation we had listed as a competitor, and ruled out Copilot's ID/store-mismatch alternative. The regression test failing after its status and list assertions passed confirmed it. That evidence, rather than Copilot agreeing with us, is what justified editing only data_store.py.
+3. How did regression tests protect the refactoring?
+- We refactored only after both repairs gave a fully passing suite (88 passed at afb89ad), so any change in result would point to the refactor. The same 88 tests then passed at 3a1b426 with no test edited. The tests that would have caught a behaviour change were the F8-01 regression test (same practitioner rejected and store unchanged; different practitioner allowed), TEST-26/32 (a conflict is detected, which would fail if the enum comparison never matched), TEST-27/33 (other practitioners not blocked), TEST-28 (exact-time boundary) and test_cancelled_slot_can_be_booked_again (CANCELLED does not count as a conflict). Because these assert specific outcomes and unchanged state rather than "not None", a passing run is real evidence the refactor kept behaviour. Keeping the change to one line made any failure easy to trace.
 
 ## K. Ten formative questions
 
 1. What should an engineer do before changing code in response to a failure?
 
-Response: [complete]
+Response: Reproduce the failure reliably and in the smallest form. Record the observed behaviour and the expected behaviour, justified by a requirement. Check whether the test itself is correct. Form a hypothesis and decide what evidence would confirm or rule it out. Only then make the smallest change that addresses the supported cause.
 
 2. Where should expected behaviour come from during debugging?
 
-Response: [complete]
+Response: From the agreed requirements and contracts. For us that is the SmartCare A3 Requirements Baseline revision 2 (FRs, ACs, BRs and the ID, time and status contracts). It should not come from what the current code does, what a test happens to assert, or what Copilot suggests.
 
 3. What is a debugging hypothesis?
 
-Response: [complete]
+Response: A specific, testable explanation of what is causing an observed failure, stated so that a particular check could confirm or refute it. For example: "cancel removes A1 from the store", which a list_appointments() check after cancelling would confirm or rule out.
 
 4. What is a regression test and why is it retained?
 
-Response: [complete]
+Response: A test that captures behaviour that must keep working, often added when a defect is fixed so it fails on the faulty code and passes after the repair. It stays in the suite so the defect cannot quietly return, and so later changes such as refactoring or Stage 9 features are checked against everything that already worked.
 
 5. What is meant by root cause?
 
-Response: [complete]
+Response: The underlying fault that, when corrected, removes the failure, as opposed to the point where the failure was detected or a symptom that a workaround could hide. It is supported by evidence that rules out the competing explanations.
 
 6. What is refactoring?
 
-Response: [complete]
+Response: Changing the internal structure of code to make it clearer or easier to change without changing its external behaviour. It is done in small steps, with the same tests passing before and after, and kept separate from repairs and features.
 
 7. What is a swallowed exception?
 
-Response: [complete]
+Response: An exception that is caught and then ignored, for example with except Exception: pass or by returning a default. The failure is hidden, the caller is not told, and the program carries on in a possibly invalid state. That makes defects harder to detect and diagnose.
 
 8. What is a code smell?
 
-Response: [complete]
+Response: A surface sign in code that suggests a deeper design or maintainability problem, such as a long method, duplicated logic, magic strings, deep nesting or mixed responsibilities. It is not a bug in itself, but a prompt to look closer and possibly refactor.
 
 9. How should GitHub Copilot-generated debugging diagnoses be treated?
 
-Response: [complete]
+Response: As candidate hypotheses, recorded only after the group's own hypothesis. Each one is checked against the requirements, the actual code and runs we performed ourselves, then accepted, modified or rejected with a reason. Copilot cannot run our tests and may invent requirements or causes, so a convincing explanation is not evidence.
 
 10. What is the Stage 8 engineering rule?
 
-Response: [complete]
+Response: Do not change code until the failure is reproduced, the expected behaviour is traced to a requirement, and a hypothesis has been tested with evidence. Repair the supported root cause with the smallest change, prove it with a failing-then-passing regression test and a full-suite run, and refactor only separately under passing before/after tests. Copilot output stays a checked suggestion, never the diagnosis.
 
 ## L. Completion and handover
 
