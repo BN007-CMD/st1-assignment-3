@@ -13,10 +13,10 @@ Baseline: Stage 6 foundation, 2026 revision 2. This starter deliberately leaves 
   - Quang (@quangle330), UG
   - Brendan (@BrendoAC11), UG
 - Shared repository URL: https://github.com/BN007-CMD/st1-assignment-3
-- Latest completed stage: Stage 7 Testing and Verification (UG pathway 6 → 7 → 8 → 9 → 12)
-- Verified code SHA: 11068b432586eb0c6ad9b90b357780da5aeb32f1
-- Test command, working directory and observed result: `python -m pytest` run from `project/` → [78 passed in 0.11s] (all four members verified 78 passed on this SHA)
-- Final submitted SHA, if different from tested code SHA: the commit that adds the Stage 7 record, test run screenshots and this index. It adds no application code changes [confirm], so the verified code SHA above is the tested version.
+- Latest completed stage: Stage 7 Debugging and Refactoring (UG pathway 6 → 7 → 8 → 9 → 12)
+- Verified code SHA: b3a3b5800276979112cf7329ac5bb08c62bbb86f
+- Test command, working directory and observed result: `python -m pytest` run from `project/` → [88 passed in 0.06s] (all four members verified 88 passed on this SHA)
+- Final submitted SHA, if different from tested code SHA: the commit that adds the Stage 8 record this index. It adds no application code changes [confirm], so the verified code SHA above is the tested version.
 
 Do not put student IDs, private peer ratings, credentials or personal contact details here.
 
