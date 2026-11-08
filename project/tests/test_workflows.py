@@ -101,3 +101,53 @@ def test_cancel_retained_history(booked):
         'DR1', AppointmentStatus.SCHEDULED
     )
     assert a1 not in scheduled_only
+
+# Integrated sequence covering booking, conflict, different practitioner,
+# cancel, retrieve, listing, freed slot
+def test_ui01_sequence(services):
+    patients, practitioners, appointments = services
+    patients.register_patient('P1', 'Alex Example')
+    practitioners.register_practitioner('D1', 'Taylor Example', 'General practice')
+    practitioners.register_practitioner('D2', 'Sam Example', 'Cardiology')
+
+    a1 = appointments.book_appointment('A1', 'P1', 'D1', datetime(2026, 10, 1, 9, 0))
+    assert a1.status is AppointmentStatus.SCHEDULED
+
+    with pytest.raises(ValueError):
+        appointments.book_appointment('A2', 'P1', 'D1', datetime(2026, 10, 1, 9, 0))
+    assert appointments.find_appointment('A2') is None  # not reserved
+
+    a2 = appointments.book_appointment('A2', 'P1', 'D2', datetime(2026, 10, 1, 9, 0))
+    assert a2.status is AppointmentStatus.SCHEDULED  # different practitioner allowed
+
+    cancelled = appointments.cancel_appointment('A1')
+    assert cancelled is a1
+    assert cancelled.status is AppointmentStatus.CANCELLED
+    assert appointments.find_appointment('A1') is a1
+
+    all_d1 = appointments.list_practitioner_appointments('D1')
+    assert a1 in all_d1
+    sched_d1 = appointments.list_practitioner_appointments('D1', AppointmentStatus.SCHEDULED)
+    assert a1 not in sched_d1
+
+    a3 = appointments.book_appointment('A3', 'P1', 'D1', datetime(2026, 10, 1, 9, 0))
+    assert a3.status is AppointmentStatus.SCHEDULED  # freed slot reused
+
+
+# Rejection leaves no partial state
+def test_rejection_no_partial_state(services):
+    patients, practitioners, appointments = services
+    patients.register_patient('P1', 'Alex Example')
+    practitioners.register_practitioner('D1', 'Taylor Example', 'General practice')
+    appointments.book_appointment('A1', 'P1', 'D1', datetime(2026, 10, 1, 9, 0))
+
+    before = list(appointments.data_store.list_appointments())
+    with pytest.raises(ValueError):
+        appointments.book_appointment('A1', 'P1', 'D1', datetime(2026, 10, 1, 10, 0))  # duplicate
+    with pytest.raises(LookupError):
+        appointments.book_appointment('A9', 'P9', 'D1', datetime(2026, 10, 1, 10, 0))  # unknown patient
+    with pytest.raises(ValueError):
+        appointments.cancel_appointment('A1')  # legal
+    with pytest.raises(ValueError):
+        appointments.cancel_appointment('A1')  # repeat -> rejected
+    assert list(appointments.data_store.list_appointments()) == before
