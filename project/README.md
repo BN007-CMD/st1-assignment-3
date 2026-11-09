@@ -1,40 +1,88 @@
-# SmartCare application
+# SmartCare v1.0 (course release)
 
-Requirements baseline: SmartCare A3 2026 revision 2. Python 3.13 and pytest 8.3.5 verified by the teaching team; Python 3.10 or newer is needed because the code uses `X | None` type hints. Runtime uses only the standard library.
+SmartCare is a small console application that clinic staff use to register patients and practitioners, book and cancel appointments, and list a practitioner's appointments. It was built by Online Group 4 for Software Technology 1, Assignment 3, against the **SmartCare A3 Requirements Baseline 2026 revision 2**, UG/common scope.
 
-From this directory, using a Python environment with the development dependency installed:
+This is a course release. It makes no claim of production, clinical or security readiness. Use synthetic records only, never real patient information.
+
+## Included capabilities (common scope)
+
+| Requirement | Capability |
+|---|---|
+| FR-01, FR-02 | Register a patient (unique ID, required name); find a patient by ID |
+| FR-03 | Register a practitioner (unique ID, name, specialty); find a practitioner by ID |
+| FR-04, FR-05 | Book an appointment for a registered patient and practitioner; reject another SCHEDULED booking for the same practitioner at exactly the same time (a different practitioner at that time is allowed) |
+| FR-06, FR-07, FR-08 | Cancel only a SCHEDULED appointment; the same appointment stays in session history as CANCELLED and can still be found by ID |
+| FR-09, QRY-01–04, FP-01–03 | List a practitioner's appointments: all statuses by default or one status filter, ordered by date/time then appointment ID, through a pure query function |
+| UI-01, UI-02 | Interactive menu over one session store, recovering from invalid menu, ID, date/time and status input |
+
+**Out of scope:** FR-10 persistence is retired, so records last only for the current program session. Also out of scope: PG rescheduling (Stages 10–11), authentication and roles, notifications, billing, clinical rules, patient conflicts, durations and timezones.
+
+## Environment
+
+- Python **3.10 or newer** (the code uses `X | None` type hints). The release was verified on Python 3.13. Use your teaching team's confirmed environment.
+- Runtime uses only the standard library. The only development dependency is `pytest==8.3.5` (`requirements-dev.txt`).
+
+## Run and test
+
+From the repository root:
 
 ```sh
+cd project
+python --version
 python -m pip install -r requirements-dev.txt
-python main.py
-python -m pytest
+python main.py                  # scripted synthetic demo
+python main.py --interactive    # menu; enter 0 to exit
+python -m pytest -q             # full suite: 124 passed
+cd ..
 ```
 
-The demo registers synthetic records and books/finds an appointment. Data exists only in this session and is lost on exit; FR-10 restart persistence is retired. Use synthetic information only.
+Dates are entered as `YYYY-MM-DD HH:MM` (local time, minute precision). Status filters are blank (all), `scheduled`, `cancelled` or `completed`.
 
-## Current status: Stage 8 complete
+## Structure and responsibilities
 
-Stage 8 (Debugging and Refactoring) diagnosed and repaired two prepared defects in smartcare/data_store.py, added a focused regression test for each, and made one behaviour-preserving refactor. The Stage 8 record, with the diagnosis, Copilot decisions and before/after test evidence, is in stage08/.
+```
+project/
+  main.py                 entry point: demo or --interactive menu
+  smartcare/
+    domain.py             Patient, Practitioner, Appointment, AppointmentStatus; validation and the guarded cancel() transition
+    data_store.py         SmartCareDataStore: the session's three collections (add/find/list) and the practitioner-conflict check
+    services.py           PatientService, PractitionerService, AppointmentService: coordinate use cases over one shared store
+    queries.py            appointment_sort_key, select_appointments: pure functions over explicit inputs
+    console.py            run_menu: input parsing, messages and error recovery; delegates to services
+  tests/                  124 pytest tests (starter, domain, services, regressions, queries, workflows, console)
+```
 
-| Change | Type | Requirement |
-|---|---|---|
-| `has_practitioner_conflict` compared practitioner IDs with `!=`; now `==`, so only the same practitioner at the exact time with a SCHEDULED appointment conflicts | Repair (F8-01) | FR-05, AC-04.1/04.2 |
-| `find_appointment` skipped cancelled appointments; the status filter is removed, so retained history is found again | Repair (F8-02) | FR-07, AC-05.2/05.3 |
-| The conflict check compares status with `AppointmentStatus.SCHEDULED` instead of the string `"scheduled"` | Refactor, no behaviour change | — |
+- **Lookups:** store lookups return `None` when an ID is absent. Service lookups raise `LookupError`.
+- **Errors:** invalid values, duplicates, conflicts and illegal transitions raise `ValueError`.
+- **On rejection:** a rejected operation leaves the stored state unchanged.
+- **Status changes:** cancellation belongs to `Appointment`, so status changes only through `cancel()`.
 
-Earlier stages: Stage 6 completed the service operations below; Stage 7 added our domain and service tests, traced to requirements (stage07/).
+## Tests
 
-| Operation | Status | Contract |
-|---|---|---|
-| `PatientService.find_patient` | Stage 6, done | Returns the registered `Patient`. ID trimmed and case-sensitive; blank/non-text ID → `ValueError`; valid unknown ID → `LookupError`. |
-| `PractitionerService.find_practitioner` | Stage 6, done | Same contract for registered practitioners. |
-| `AppointmentService.cancel_appointment` | Stage 6, done | Calls `Appointment.cancel()` and returns the same stored object as `CANCELLED`; history is kept. Repeated or COMPLETED cancellation → `ValueError` with no change; unknown ID → `LookupError`. |
-| `appointment_sort_key`, `select_appointments`, `list_practitioner_appointments`, `run_menu` | Stage 9 TODO | Still raise `NotImplementedError` by design. `python main.py --interactive` reports the incomplete menu. |
+| File | Covers |
+|---|---|
+| `test_starter.py` | the 8 supplied scaffold checks (unchanged) |
+| `test_domain.py` | entity validation and state rules (Stage 7) |
+| `test_services.py` | lookups, booking/conflict and cancellation contracts (Stages 6–7) |
+| `test_regressions.py` | the two Stage 8 defects (F8-01 conflict, F8-02 cancelled lookup) |
+| `test_queries.py` | QRY and FP query contracts (Stage 9) |
+| `test_workflows.py` | service listing and end-to-end UI-01/UI-02 sequences (Stage 9) |
+| `test_console.py` | console input handling (Stage 9) |
 
-Tests (88 in total; python -m pytest from this directory gives 88 passed): tests/test_starter.py holds the 8 supplied scaffold checks (unchanged). tests/test_services.py holds our Stage 6 service tests and Stage 7 additions (TEST-16 to TEST-33), built on a fresh-store fixture. tests/test_domain.py holds our Stage 7 domain tests (TEST-01 to TEST-15). tests/test_regressions.py holds the two Stage 8 regression tests, one per repaired defect; both failed before the repairs and must be kept. Requirement and acceptance-criterion IDs are in each test's docstring.
+Requirement IDs are given in test names and docstrings.
 
-## Responsibilities
+## AI use
 
-`domain.py` contains the entities, status and guarded cancellation. `data_store.py` holds three dictionaries through add/find/list methods. The three services share that store and coordinate workflows without bypassing domain rules. Properties provide read-only identity/appointment state; changes go through domain methods.
+- **Assistant:** GitHub Copilot was the nominated assistant.
+- **Reviews:** each stage's reviewers recorded their own review before running Copilot, then accepted, modified or rejected its suggestions with evidence. Examples: Stage 6 rejected Copilot's claim that list ordering was "only implied"; in Stage 8, Copilot's alternative causes were rejected or modified after runtime checks.
+- **Where it's recorded:** details are in each stage record.
 
-Service booking accepts IDs and a `datetime` (local, minute precision). The console parser accepts exactly `YYYY-MM-DD HH:MM`. Store lookups return None when absent; service lookups raise LookupError. Invalid values, duplicates, conflicts and illegal transitions raise ValueError. Lists are new containers holding the stored objects. No age, duration, patient-conflict or past-date rules apply.
+## Known limitations
+
+- **Session-only data:** everything is lost on exit.
+- **Time handling:** local naive minute-precision times, with no timezone policy.
+- **Single user:** one operator, with no concurrency control or authentication.
+- **Error messages:** lookup error messages don't include the requested ID.
+- **Code style:** some PEP 8 and docstring gaps remain in the code and tests (cosmetic only; listed as debt).
+
+See the Stage 12 record, section G, for the full list and technical debt.

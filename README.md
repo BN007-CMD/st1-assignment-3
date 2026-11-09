@@ -1,10 +1,8 @@
-# Software Technology 1 Assignment 3
+# Software Technology 1 Assignment 3: SmartCare v1.0
 
-One group repository and one evolving SmartCare application.
-Baseline: Stage 6 foundation, 2026 revision 2. This starter deliberately leaves the three Stage 6 service tasks incomplete.
+One group repository and one evolving SmartCare application, released at Stage 12 as **SmartCare v1.0 (course release)** against the 2026 revision 2 requirements baseline (UG/common scope). How to install, run and test it is in [project/README.md](project/README.md).
 
 ## Group index
-
 
 - Group and tutorial: Online Group 4, Tuesday 17:30 tutorial
 - Member names, GitHub usernames and UG/PG cohorts:
@@ -13,16 +11,17 @@ Baseline: Stage 6 foundation, 2026 revision 2. This starter deliberately leaves 
   - Quang (@quangle330), UG
   - Brendan (@BrendoAC11), UG
 - Shared repository URL: https://github.com/BN007-CMD/st1-assignment-3
-- Latest completed stage: Stage 9 Queries Intergration (UG pathway 6 → 7 → 8 → 9 → 12)
-- Verified code SHA: 75ccce6cbff92cc31f547da19a7cf9b7941f088f
-- Test command, working directory and observed result: `python -m pytest` run from `project/` → [111 passed in 0.12s] (Jay also verified 111 passed on this SHA)
-- Final submitted SHA, if different from tested code SHA: the commit that adds the Stage 9 record this index.
+- Latest completed stage: Stage 12 Final Release (UG pathway 6 → 7 → 8 → 9 → 12; Stages 10 and 11 are PG-only and their templates are intentionally left unchanged)
+- Release label: SmartCare v1.0 (course release)
+- Verified code SHA: the release PR merge commit, recorded in stage12/stage12_activities_and_evidence.md section K
+- Test command, working directory and observed result: `python -m pytest -q` run from `project/` → 124 passed (see Stage 12 record section C)
+- Stage records: stage06/, stage07/, stage08/, stage09/, stage12/ (stage09/stage09_evidence/ holds the Stage 9 console transcripts)
 
 Do not put student IDs, private peer ratings, credentials or personal contact details here.
 
 ## Complete package and stage sequence
 
-All Assignment 3 ordinary materials are supplied at the beginning: the Overview, Git/GitHub Group Guide, Stage 6–12 handouts, this incomplete SmartCare starter, all seven blank activity/evidence records, and assessment instructions/forms. Stage numbers control the engineering sequence, not document availability.
+All Assignment 3 ordinary materials are supplied at the beginning: the Overview, Git/GitHub Group Guide, Stage 6–12 handouts, the original (incomplete) SmartCare starter that this project grew from, all seven blank activity/evidence records, and assessment instructions/forms. Stage numbers control the engineering sequence, not document availability.
 
 Start with Stage 6. Complete each stage only after the previous applicable stage has been integrated, verified and recorded.
 
