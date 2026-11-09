@@ -115,7 +115,7 @@ def test_ui01_sequence(services):
 
     with pytest.raises(ValueError):
         appointments.book_appointment('A2', 'P1', 'D1', datetime(2026, 10, 1, 9, 0))
-    assert appointments.find_appointment('A2') is None  # not reserved
+    assert appointments.data_store.find_appointment('A2') is None  # not reserved
 
     a2 = appointments.book_appointment('A2', 'P1', 'D2', datetime(2026, 10, 1, 9, 0))
     assert a2.status is AppointmentStatus.SCHEDULED  # different practitioner allowed
@@ -123,7 +123,7 @@ def test_ui01_sequence(services):
     cancelled = appointments.cancel_appointment('A1')
     assert cancelled is a1
     assert cancelled.status is AppointmentStatus.CANCELLED
-    assert appointments.find_appointment('A1') is a1
+    assert appointments.data_store.find_appointment('A1') is a1
 
     all_d1 = appointments.list_practitioner_appointments('D1')
     assert a1 in all_d1
@@ -141,13 +141,30 @@ def test_rejection_no_partial_state(services):
     practitioners.register_practitioner('D1', 'Taylor Example', 'General practice')
     appointments.book_appointment('A1', 'P1', 'D1', datetime(2026, 10, 1, 9, 0))
 
-    before = list(appointments.data_store.list_appointments())
-    with pytest.raises(ValueError):
-        appointments.book_appointment('A1', 'P1', 'D1', datetime(2026, 10, 1, 10, 0))  # duplicate
-    with pytest.raises(LookupError):
-        appointments.book_appointment('A9', 'P9', 'D1', datetime(2026, 10, 1, 10, 0))  # unknown patient
-    with pytest.raises(ValueError):
-        appointments.cancel_appointment('A1')  # legal
-    with pytest.raises(ValueError):
-        appointments.cancel_appointment('A1')  # repeat -> rejected
-    assert list(appointments.data_store.list_appointments()) == before
+    appointments.cancel_appointment('A1')
+
+    def snapshot():
+        return [
+            (a.appointment_id, a.date_time, a.status, a.patient, a.practitioner)
+            for a in appointments.data_store.list_appointments()
+        ]
+
+    before = snapshot()
+
+    # only failed operations from here on
+    with pytest.raises(ValueError):        # duplicate ID, free time
+        appointments.book_appointment('A1', 'P1', 'D1', datetime(2026, 10, 1, 10, 0))
+    with pytest.raises(LookupError):       # unknown patient
+        appointments.book_appointment('A9', 'P9', 'D1', datetime(2026, 10, 1, 10, 0))
+    with pytest.raises(ValueError):        # repeat cancel (already CANCELLED)
+        appointments.cancel_appointment('A1')
+    with pytest.raises(ValueError):        # blank practitioner ID on listing
+        appointments.list_practitioner_appointments('')
+    with pytest.raises(ValueError):        # non-enum status
+        appointments.list_practitioner_appointments('D1', 'scheduled')
+
+    after = snapshot()
+
+    assert after == before
+    assert appointments.data_store.find_appointment('A9') is None
+    assert len(appointments.data_store.list_appointments()) == 1
