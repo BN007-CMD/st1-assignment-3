@@ -102,6 +102,9 @@ def test_cancel_retained_history(booked):
     )
     assert a1 not in scheduled_only
 
+
+
+
 # Integrated sequence covering booking, conflict, different practitioner,
 # cancel, retrieve, listing, freed slot
 def test_ui01_sequence(services):
