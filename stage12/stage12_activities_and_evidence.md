@@ -8,23 +8,23 @@ Common starting SHA / branch / applicable members: `b5bce81` on `main` (after th
 PG starting SHA / branch / applicable members or not applicable: Not applicable (UG-only group).
 Working-state review and approved integration: `git status --short` was empty on `main` at `b5bce81`. All earlier stage work arrived through reviewed PRs (#2, #5, #6, #11, #12, #13). No unmerged feature branches are in scope.
 Protected common candidate and PG differences: no PG extension, so the common candidate is the release candidate. `b5bce81` is the known-good pre-release state.
-Feature freeze / owner / verifier: feature freeze declared at `b5bce81`; no new features after it. Release owner: Novica. Verifier and reviewer: [REVIEWER NAME].
+Feature freeze / owner / verifier: feature freeze declared at `b5bce81`; no new features after it. Release owner: Novica. Verifier and reviewer: Quang.
 ## B Requirements and release readiness matrix
 Tutorial activity 1: All tests pass, README setup is incomplete, one dependency is unreviewed and a known limitation is undocumented. Decide Release / Release with conditions / Do not release and justify: **Do not release yet.** Passing tests only cover what the tests assert. An incomplete README means nobody else can reproduce the result. An unreviewed dependency is an unknown supply-chain and licence risk. An undocumented limitation means users are misled about what the system does. Before sign-off: complete and fresh-clone-verify the README, review the dependency (origin, version pin, licence, actual need) or remove it, and document the limitation in the README and release notes. Then rerun the full suite on the exact candidate. Our own release hit the first problem: both READMEs were stale at `b5bce81` (H1), and we fixed them before release.
 Tutorial activity 2 and actual readiness matrix. Add exact requirement/acceptance IDs, evidence and reviewer; distinguish common/PG applicability.
 | Release claim / requirement / scope | Evidence | Location/link and SHA | Reviewer | Sufficient? | Gap/action |
 |---|---|---|---|---|---|
-| Cancellation history works | Tests assert the same object, CANCELLED status, still found and still listed after cancel; repeated cancel rejected without change | `test_services.py::test_cancelled_appointment_is_retained_as_history`, `test_regressions.py::test_f8_02_cancelled_appointment_is_still_found`, `test_workflows.py::test_cancel_retained_history`; demo D6 | [REVIEWER NAME] | Yes | None |
-| Architecture responsibilities are appropriate | Code inspection (E1); tests use services without the console (NFR-02); queries are pure (FP-01) | `smartcare/` modules; `test_queries.py::test_fp_repeat_no_mutation` | [REVIEWER NAME] | Yes for course scope | Inspection is judgement-based; no automated architecture check |
+| Cancellation history works | Tests assert the same object, CANCELLED status, still found and still listed after cancel; repeated cancel rejected without change | `test_services.py::test_cancelled_appointment_is_retained_as_history`, `test_regressions.py::test_f8_02_cancelled_appointment_is_still_found`, `test_workflows.py::test_cancel_retained_history`; demo D6 | Quang | Yes | None |
+| Architecture responsibilities are appropriate | Code inspection (E1); tests use services without the console (NFR-02); queries are pure (FP-01) | `smartcare/` modules; `test_queries.py::test_fp_repeat_no_mutation` | Quang | Yes for course scope | Inspection is judgement-based; no automated architecture check |
 | Rescheduling is safe — PG only | Not applicable | — | — | — | UG-only group |
-| AI use is responsible — common recheck / PG assurance | Human-first reviews before Copilot, with Accept/Modify/Reject decisions in stage records; final AI and dependency recheck (E) | stage06 H/I, stage08 E/F, PR #2 and PR #11 reviews | [REVIEWER NAME] | Yes, with disclosed gaps | Some early Copilot sessions weren't saved verbatim; summaries were recorded instead (E) |
-| System is maintainable | Clear module responsibilities; type hints and docstrings on most public methods; 124 tests; pyflakes clean | `smartcare/`; section E | [REVIEWER NAME] | Partly | Style and docstring gaps recorded as debt (E, G); no code change at release |
-| FR-01–03 register/find and validation | Domain and service tests for unique IDs, required fields, trimmed case-sensitive lookup, ValueError vs LookupError | `test_domain.py`, `test_services.py` (FR-02/FR-03 sections) | [REVIEWER NAME] | Yes | None |
-| FR-04–05 booking/conflict rules | Same practitioner + exact time + SCHEDULED rejected with the store unchanged; a different practitioner is allowed; a cancelled slot is freed | `test_services.py` TEST-26–33, `test_regressions.py::test_f8_01_conflict_is_per_practitioner_at_exact_time`, `test_starter.py::test_conflict_rule_and_different_practitioner` | [REVIEWER NAME] | Yes | Same-patient rebooking of a freed slot isn't tested separately (no patient-conflict rule exists) |
-| FR-06–08 cancellation/history/find | As in the cancellation row, plus COMPLETED rejection and unknown/invalid ID handling | `test_services.py` cancellation section | [REVIEWER NAME] | Yes | None |
-| FR-09 and QRY/FP listing/filter/order/purity | Practitioner isolation, default all statuses, each status filter, empty vs unknown vs invalid, date-then-ID ordering, fresh lists, no mutation | `test_queries.py` (10), `test_workflows.py::test_qry04_*`, `test_qry01_service_isolation` | [REVIEWER NAME] | Yes | None |
-| UI full console sequence and error recovery | Integrated menu sequence and invalid-input recovery; release demo | `test_workflows.py::test_ui01_sequence`, `test_rejection_no_partial_state`, `test_console.py`, `stage09/stage09_evidence/ui01_transcript.txt`, `ui02_transcript.txt`; demo D | [REVIEWER NAME] | Yes | None |
-| Session-only scope / FR-10 retired | No persistence code; the exit message says session data is discarded | `console.py`, `data_store.py`; demo D11 | [REVIEWER NAME] | Yes | Accepted scope limit (G) |
+| AI use is responsible — common recheck / PG assurance | Human-first reviews before Copilot, with Accept/Modify/Reject decisions in stage records; final AI and dependency recheck (E) | stage06 H/I, stage08 E/F, PR #2 and PR #11 reviews | Quang | Yes, with disclosed gaps | Some early Copilot sessions weren't saved verbatim; summaries were recorded instead (E) |
+| System is maintainable | Clear module responsibilities; type hints and docstrings on most public methods; 124 tests; pyflakes clean | `smartcare/`; section E | Quang | Partly | Style and docstring gaps recorded as debt (E, G); no code change at release |
+| FR-01–03 register/find and validation | Domain and service tests for unique IDs, required fields, trimmed case-sensitive lookup, ValueError vs LookupError | `test_domain.py`, `test_services.py` (FR-02/FR-03 sections) | Quang | Yes | None |
+| FR-04–05 booking/conflict rules | Same practitioner + exact time + SCHEDULED rejected with the store unchanged; a different practitioner is allowed; a cancelled slot is freed | `test_services.py` TEST-26–33, `test_regressions.py::test_f8_01_conflict_is_per_practitioner_at_exact_time`, `test_starter.py::test_conflict_rule_and_different_practitioner` | Quang | Yes | Same-patient rebooking of a freed slot isn't tested separately (no patient-conflict rule exists) |
+| FR-06–08 cancellation/history/find | As in the cancellation row, plus COMPLETED rejection and unknown/invalid ID handling | `test_services.py` cancellation section | Quang | Yes | None |
+| FR-09 and QRY/FP listing/filter/order/purity | Practitioner isolation, default all statuses, each status filter, empty vs unknown vs invalid, date-then-ID ordering, fresh lists, no mutation | `test_queries.py` (10), `test_workflows.py::test_qry04_*`, `test_qry01_service_isolation` | Quang | Yes | None |
+| UI full console sequence and error recovery | Integrated menu sequence and invalid-input recovery; release demo | `test_workflows.py::test_ui01_sequence`, `test_rejection_no_partial_state`, `test_console.py`, `stage09/stage09_evidence/ui01_transcript.txt`, `ui02_transcript.txt`; demo D | Quang | Yes | None |
+| Session-only scope / FR-10 retired | No persistence code; the exit message says session data is discarded | `console.py`, `data_store.py`; demo D11 | Quang | Yes | Accepted scope limit (G) |
 | PG RES and assurance integration | Not applicable | — | — | — | UG-only group |
 ## C Full regression results
 | Suite/scope | Environment/version | Working directory and command | Tested SHA | Actual result | Evidence link |
@@ -32,7 +32,7 @@ Tutorial activity 2 and actual readiness matrix. Add exact requirement/acceptanc
 | Complete common | Python 3.14.7, pytest 8.3.5 | `project/`, `python -m pytest -q` | `b5bce81` + release docs (branch `release/stage12`, [BRANCH SHA]) | 124 passed in 0.24s | release PR |
 | Complete PG if applicable | — | — | — | Not applicable (UG) | — |
 | Affected focused checks after correction | — | — | — | Not applicable: no code changed in Stage 12 (H2 no-change decision) | — |
-| Full integrated recheck | Python 3.14.7, pytest 8.3.5 | `project/`, `python -m pytest -q` | [MERGE SHA] | [AFTER-MERGE RESULT] | section K |
+| Full integrated recheck | Python 3.14.7, pytest 8.3.5 | `project/`, `python -m pytest -q` | 74246fae45a379b72a59c8427207cfccd63c8e86  | 124 passed in 0.15s | section K |
 Prior assertions preserved / reviewed test diff: no test file was changed in Stage 12. `git diff b5bce81 -- project/tests` is empty, and the count stays at 124.
 Remaining failure / limitation: none.
 ## D Console and end to end demonstration
@@ -82,18 +82,18 @@ Available AI evidence and missing evidence honestly disclosed: Copilot outputs a
 ## F README and reproducibility check
 | README item | Location | Verifier | Result/gap |
 |---|---|---|---|
-| Purpose and included common/PG scope | `project/README.md`, top and "Included capabilities" | [REVIEWER NAME] | [RESULT] |
-| Out-of-scope capabilities and known limitations | `project/README.md` "Out of scope", "Known limitations" | [REVIEWER NAME] | [RESULT] |
-| Confirmed teaching Python version and dependency installation | `project/README.md` "Environment" | [REVIEWER NAME] | [RESULT] |
-| Working directory / demo / interactive / test commands | `project/README.md` "Run and test" | [REVIEWER NAME] | [RESULT] |
-| Repository structure and architecture responsibilities | `project/README.md` "Structure and responsibilities" | [REVIEWER NAME] | [RESULT] |
-| Responsible AI summary / synthetic-data rule | `project/README.md` "AI use" and top | [REVIEWER NAME] | [RESULT] |
-| Release label/version and SHA links | root `README.md` group index; this record K | [REVIEWER NAME] | [RESULT] |
-Root README index and project/README verified: both were stale at `b5bce81` (H1) and were rewritten in the release PR. [REVIEWER NAME] checked them against the running application.
-Fresh clone or extracted ZIP / candidate identity: [REVIEWER: fresh `git clone` of https://github.com/BN007-CMD/st1-assignment-3 at SHA ____]
-Verifier and clean environment / actual version: [REVIEWER NAME], [OS], Python [VERSION], new virtual environment
-Setup/run/test commands and observed results: `cd project`; `python -m pip install -r requirements-dev.txt` → [RESULT]; `python main.py` → [RESULT]; `python main.py --interactive` then `0` → [RESULT]; `python -m pytest -q` → [RESULT]
-Missing local file or setup gap / remedy and recheck: [REVIEWER: none found / describe]
+| Purpose and included common/PG scope | `project/README.md`, top and "Included capabilities" | Quang | Matched on fresh clone; no gap |
+| Out-of-scope capabilities and known limitations | `project/README.md` "Out of scope", "Known limitations" | Quang | Matched on fresh clone; no gap |
+| Confirmed teaching Python version and dependency installation | `project/README.md` "Environment" | Quang | Matched on fresh clone; no gap |
+| Working directory / demo / interactive / test commands | `project/README.md` "Run and test" | Quang | Matched on fresh clone; no gap |
+| Repository structure and architecture responsibilities | `project/README.md` "Structure and responsibilities" | Quang | Matched on fresh clone; no gap |
+| Responsible AI summary / synthetic-data rule | `project/README.md` "AI use" and top | Quang | Matched on fresh clone; no gap|
+| Release label/version and SHA links | root `README.md` group index; this record K | Quang | Matched on fresh clone; no gap |
+Root README index and project/README verified: both were stale at `b5bce81` (H1) and were rewritten in the release PR. Quang checked them against the running application.
+Fresh clone or extracted ZIP / candidate identity: Quang: fresh `git clone` of https://github.com/BN007-CMD/st1-assignment-3 at SHA b0452522aea4ca75bc26c4218c99f5534fce75c8
+Verifier and clean environment / actual version: Quang, Windows 11, Python 3.15.2, new virtual environment
+Setup/run/test commands and observed results: `cd project`; `python -m pip install -r requirements-dev.txt` →; `python main.py` → ; `python main.py --interactive` then `0` → ; `python -m pytest -q` 
+Missing local file or setup gap / remedy and recheck: Quang: none found 
 ## G Known limitations debt and release notes
 Delivered features: register and find patients and practitioners; book appointments with exact-time practitioner conflict rejection; cancel with retained, findable history; practitioner listing with status filter and deterministic ordering through a pure query; interactive console with error recovery. All are session-only, in one shared store.
 Important fixes: F8-01, the practitioner conflict check was inverted (`2ef8a3a`); F8-02, cancelled appointments couldn't be found (`afb89ad`); Stage 9, missing `AppointmentStatus` import in `console.py` (`3641739`); Stage 12, stale READMEs corrected (H1).
@@ -121,21 +121,21 @@ Justified no-change conclusion if no defect found: no functional defect was foun
 Release blockers still open / status: none after H1 (READMEs) is merged.
 ## I Git review and integration evidence
 Issue / PR / diff links and reviewed SHA: release PR [#__ LINK], branch `release/stage12`, reviewed SHA [SHA]
-Independent reviewer / feedback / response: [REVIEWER NAME]; [FEEDBACK or "approved without changes"]; [RESPONSE]
-Integration commit / full recheck: [MERGE SHA]; `python -m pytest -q` from `project/` → [RESULT]
+Independent reviewer / feedback / response: Quang; approved without changes after a fresh-clone check (124 passed in 0.19s on 'b0452522') https://github.com/BN007-CMD/st1-assignment-3/pull/14#pullrequestreview-5822511483 
+Integration commit / full recheck: 74246fae45a379b72a59c8427207cfccd63c8e86 ; `python -m pytest -q` from `project/` → 124 passed in 0.15s
 Tracked and untracked file inspection / cleanliness: `git ls-files` lists only `.gitignore`, both READMEs, `project/` source and tests, `requirements-dev.txt`, the stage records, the Stage 7 screenshots and `stage09/stage09_evidence/` transcripts. `git status --short` was empty before the release branch.
 Secrets/staff material/caches/tool-metadata exclusion check: no `.env`, credentials, `__pycache__`, `.venv`, `.pytest_cache`, Stage 8 utility or `.stage8_faults/` files are tracked; `.gitignore` covers them.
-Candidate recovery plan / known-good SHA: known-good pre-release `b5bce81`; Stage 9 integration `10be97c`; release merge [MERGE SHA]. Any of them can be restored with `git switch --detach <SHA>`. History is never rewritten.
-Named substantive contributions: Stage 6 lead Novica (PR #2); Stage 7 lead Emilio (PR #6); Stage 8 lead Quang (PR #11, #12); Stage 9 integration (PR #13, reviewed by Quang); Stage 12 release Novica (this PR), reviewed by [REVIEWER NAME]. Each stage record lists review roles.
+Candidate recovery plan / known-good SHA: known-good pre-release `b5bce81`; Stage 9 integration `10be97c`; release merge 74246fae45a379b72a59c8427207cfccd63c8e86 . Any of them can be restored with `git switch --detach <SHA>`. History is never rewritten.
+Named substantive contributions: Stage 6 lead Novica (PR #2); Stage 7 lead Emilio (PR #6); Stage 8 lead Quang (PR #11, #12); Stage 9 integration (PR #13, reviewed by Quang); Stage 12 release Novica (this PR), reviewed by Quang. Each stage record lists review roles.
 ## J Human release decision
 Decision — READY FOR COURSE RELEASE / READY WITH DOCUMENTED LIMITATIONS / NOT YET READY: **READY WITH DOCUMENTED LIMITATIONS**
-Approver / date / rationale and evidence: Novica, release owner, [DATE], with [REVIEWER NAME] as independent reviewer. All revision 2 common requirements are traced to passing tests (B), the full suite passes on the merged candidate (C), the demo sequence works from a fresh process (D), the README was reproduced from a fresh clone (F), the README blocker is corrected and the code-quality finding is a justified no-change recorded as debt (H).
+Approver / date / rationale and evidence: Novica, release owner, 9/11/2026, with Quang as independent reviewer. All revision 2 common requirements are traced to passing tests (B), the full suite passes on the merged candidate (C), the demo sequence works from a fresh process (D), the README was reproduced from a fresh clone (F), the README blocker is corrected and the code-quality finding is a justified no-change recorded as debt (H).
 What risks remain / conditions / owners: the session-only, single-user and naive-time limits and the low-priority debt in G. These are accepted for a course release, not production. Owner: the group. Condition: no production or clinical use.
 Can the team explain the system: yes. Each member led one stage and reviewed others (I), and section N lists the explanation points.
 Can a change be recovered: yes, through the known-good SHAs in I.
 Common decision / PG decision where different: common only (UG).
 ## K Final tested release SHA
-Exact common tested SHA: [MERGE SHA of the release PR] (full suite [RESULT] by Novica and [REVIEWER NAME]). This replaces the earlier draft value `32fde1d`, which predated the release corrections.
+Exact common tested SHA: 74246fae45a379b72a59c8427207cfccd63c8e86  (full suite 124 passed in 0.15s on 74246fa by Novica and Quang). This replaces the earlier draft value `32fde1d`, which predated the release corrections.
 Exact PG tested SHA or not applicable: not applicable (UG)
 Final submitted SHA / repository URL: https://github.com/BN007-CMD/st1-assignment-3. The submitted SHA is the commit that adds this completed record; a file can't contain its own future SHA, so it's given in the submission form.
 Evidence-only later commit and difference explanation: if the record's final values are added in a later commit, that commit changes only `stage12/stage12_activities_and_evidence.md` (no executable changes), so the tested code SHA above still stands.
@@ -155,13 +155,13 @@ Source ZIP name / SHA correspondence / extracted comparison: `SmartCare-release.
 - [ ] No .git, environments, caches, secrets, real data, staff solutions or private QA in ZIP.
 - [ ] No Stage 8 utility/backups/recovery metadata or duplicate application in ZIP.
 - [ ] Mixed-group common protection and candidate upload routing checked.
-- [ ] Group reflection, confidential individual peer forms and common team viva routed separately.
-Confirmed assessment item/upload route: [FROM CANVAS]
-Deadline/timezone: [FROM CANVAS]
+- [ ] Group reflection, cindividual peer forms routed separately.
+Confirmed assessment item/upload route: Canvas
+Deadline/timezone: 23:59 9/11/2026 AEST
 Repository access arrangement: public repository, https://github.com/BN007-CMD/st1-assignment-3
 Mixed-candidate upload arrangement: not applicable (UG-only group, one candidate)
-Oral/video recording/accessibility arrangements: [FROM CANVAS / TUTOR]
-Remaining administration or release dependency: group reflection, peer forms and team viva are submitted through their own routes.
+Oral/video recording/accessibility arrangements: Nil
+Remaining administration or release dependency: group reflection, peer forms and team reports are submitted through cadmus.
 ## M Formative questions
 1. What is a release candidate? A specific, frozen version of the software, identified by an exact commit SHA, that the team proposes to release once it passes final verification. If verification finds a blocker, the fix produces a new candidate rather than quietly changing the old one.
 2. What is feature freeze and why is it used? A point after which no new features are added; only release blockers are fixed. It stops the target moving, so testing, documentation and review describe the version that actually ships.
@@ -177,11 +177,11 @@ Remaining administration or release dependency: group reflection, peer forms and
 Strongest evidence SmartCare is ready: 124 requirement-linked tests passing on the exact release SHA; regression tests that failed before the Stage 8 repairs and pass after; a fresh-clone reproduction by another member.
 Weakest area: AI evidence from Stages 7 and 9 is summarised rather than saved verbatim, and test-file style is uneven. Neither affects behaviour, but both make the history harder to audit.
 How AI use changed from Stage 1 to Stage 12: we moved from accepting AI output as a starting point to treating every suggestion as a hypothesis. In Stage 6 we recorded human observations before Copilot; by Stage 8 we were ranking Copilot's causes against runtime evidence and rejecting two of them. Our Stage 1 answer isn't available to quote, so we don't compare against it directly.
-Start doing — engineering and AI use: commit the team agreement and refactor plans before the work they govern; save AI prompts and outputs in the PR as they happen.
-Stop doing — engineering and AI use: committing directly to `main`; letting tool-generated or AI-generated formatting go unreviewed for style.
-Continue doing — engineering and AI use: one focused issue and branch per change; a different member reviewing every PR; human-first review before Copilot; regression tests that fail before a fix.
+Start doing engineering and AI use: commit the team agreement and refactor plans before the work they govern; save AI prompts and outputs in the PR as they happen.
+Stop doing engineering and AI use: committing directly to `main`; letting tool-generated or AI-generated formatting go unreviewed for style.
+Continue doing engineering and AI use: one focused issue and branch per change; a different member reviewing every PR; human-first review before Copilot; regression tests that fail before a fix.
 What worked / caused rework / future delivery improvement: Worked: rotating stage leads with assigned reviewers, and fail-first regression tests. Caused rework: one combined issue that had to be split (Stage 6), records filled after the fact (Stage 6 E, Stage 8 H), and stale READMEs found only at release. Improvement: update the READMEs and record sections in the same PR as each change.
-One paragraph — If AI can write code why do we still need software engineers: Because writing code was never the hard part to trust. In SmartCare, Copilot produced confident but wrong causes for both Stage 8 defects and claimed something "was only implied" when a test asserted it directly. Only a person who knew the requirement, ran the code and checked the evidence could tell. Engineers decide what the system must do, design how responsibilities fit together, judge whether evidence actually proves anything, and stay accountable for what is released to people who depend on it. AI speeds up producing candidates; engineers decide which candidates are true.
+One paragraph If AI can write code why do we still need software engineers: Because writing code was never the hard part to trust. In SmartCare, Copilot produced confident but wrong causes for both Stage 8 defects and claimed something "was only implied" when a test asserted it directly. Only a person who knew the requirement, ran the code and checked the evidence could tell. Engineers decide what the system must do, design how responsibilities fit together, judge whether evidence actually proves anything, and stay accountable for what is released to people who depend on it. AI speeds up producing candidates; engineers decide which candidates are true.
 | Preparation item | Own explanation and evidence link |
 |---|---|
 | Problem and stakeholders | Clinic staff need reliable booking without double-booking a practitioner, and an audit of cancellations; patients and practitioners rely on it |
@@ -196,8 +196,8 @@ One paragraph — If AI can write code why do we still need software engineers: 
 | FR-07 retained history test | `test_services.py::test_cancelled_appointment_is_retained_as_history` |
 | Actual AI change rejected/modified or honestly accepted with verification | Stage 8 F8-02: Copilot's "service mapping" cause modified to a downstream effect after the runtime check (stage08 F) |
 | Unresolved limitation / future production work | Session-only data. Production would need durable storage, authentication and roles, timezone policy and concurrency control |
-| Personal implementation contribution | [EACH MEMBER: own] |
-| Personal test/review/design/integration contribution | [EACH MEMBER: own] |
+| Personal implementation contribution | Novica: Stage 6 lead. Implemented PatientService.find_patient, PractitionerService.find_practitioner and AppointmentService.cancel_appointment with 30 service tests (PR #2, 562097f), then added the unchanged-state checks the reviewers requested (9c6a7a2). Emilio led Stage 7 (PR #6), Quang led Stage 8 (PR #11) and Stage 9 was integrated in PR #13; each member explains their own stage in the team viva. |
+| Personal test/review/design/integration contribution | Novica: wrote issues #1, #3 and #4 and split the original combined issue; responded to all Stage 6 review points; reviewed the Stage 8 refactor (#10 in PR #11), requested the missing section H and approved after it was added; merged PRs #2, #5 and #6; Stage 12 release owner: rewrote both READMEs, ran the release regression and demo, and opened PR #14.|
 | PG agentic change and rescheduling verification | Not applicable (UG) |
 | PG responsible-AI risk/remediation or supported no finding | Not applicable (UG) |
 Optional bounded-change practice only: validation rule, focused test, safe error-message change, explicit-input query or agreed status rule with test. Explain expected impact before editing, make a small change, run the test, and identify evidence to inspect if unsure. No live AI unless explicitly permitted. Preserve the submitted candidate.
