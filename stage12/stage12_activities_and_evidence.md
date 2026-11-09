@@ -8,11 +8,11 @@ Members and UG/PG applicability: [response]
 
 ## A Release scope and starting SHA
 
-Release label/version and requirements baseline: [response]
+Release label/version and requirements baseline: SmartCare v1.0 (Course Release Candidate). Based on the Assignment 3 revision 2 requirements baseline (FR-01–FR-09, FR-10 retired, QRY-01–04, FP-01–03, UI-01–02).
 Common starting SHA / branch / applicable members: [response]
-PG starting SHA / branch / applicable members or not applicable: [response]
-Working-state review and approved integration: [response]
-Protected common candidate and PG differences: [response]
+PG starting SHA / branch / applicable members or not applicable: Not Applicable
+Working-state review and approved integration: Working tree is clean (git status --short returns no output). The Stage 9 integration PR (#13) was reviewed and approved by Jay and successfully merged into main.
+Protected common candidate and PG differences: The common candidate is protected at the starting SHA listed above.
 Feature freeze / owner / verifier: [response]
 
 
@@ -164,7 +164,7 @@ Common decision / PG decision where different: [response]
 
 ## K Final tested release SHA
 
-Exact common tested SHA: [response]
+Exact common tested SHA: 32fde1d15b620693126f0049534fc2d88ff6ae87
 Exact PG tested SHA or not applicable: [response]
 Final submitted SHA / repository URL: [response]
 Evidence-only later commit and difference explanation: [response]
