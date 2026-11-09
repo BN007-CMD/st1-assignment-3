@@ -252,12 +252,19 @@ How they stay separate. Data flows one way: console to service to store/domain, 
 ## H. Review, completion and common handover
 
 Issues and bounded branches: (https://github.com/BN007-CMD/st1-assignment-3/pull/13/changes/1dfd1e484988a5bd265c7ca1d51cd83ae323330f)
+
 PR/diff and another-member human reviewer: PR:https://github.com/BN007-CMD/st1-assignment-3/pull/13
-Review responses and Copilot comparison: <!-- links -->
+
+Review responses and Copilot comparison: Jay reviewed https://github.com/BN007-CMD/st1-assignment-3/pull/13#pullrequestreview-5821298153
+
 Integrated common Stage 9 SHA: 1dfd1e484988a5bd265c7ca1d51cd83ae323330f
+
 Full regression command, working directory, actual count/result and evidence: Working directory: project/ Command: python -m pytest -q Result: 124 passed in 0.12s
-README run instructions and scope/limitations: <!-- link -->
+
+README run instructions and scope/limitations: Contains the interactive run command (python main.py --interactive), test command (python -m pytest -q), supported menu commands, and clearly states the session-only limitation (FR-10 retired, data is lost on exit).
+
 Unresolved issues and support/action: No critical issues
+
 UG common candidate / PG future branch plan: The Stage 9 SHA above is protected as the common candidate. We will proceeds to Stage 12 preparation
 
 - [ ] Query contracts, purity, new lists and named-key ordering verified.
