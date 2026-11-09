@@ -138,7 +138,7 @@ Repeat this block per PR. Record actual events, not planned approvals.
   - Quang rechecked `9c6a7a2` (38 passed in 0.09s) and [approved](https://github.com/BN007-CMD/st1-assignment-3/pull/2#pullrequestreview-5692848501)
   - Brendan [approved](https://github.com/BN007-CMD/st1-assignment-3/pull/2#event-34460316220). The review fix does not touch the cancellation tests.
 - Merge outcome and SHA: merged with a merge commit after all three approvals; [`a74ea06a5fcdca236f1f220fa1219ebc98a7ca95`](https://github.com/BN007-CMD/st1-assignment-3/commit/a74ea06a5fcdca236f1f220fa1219ebc98a7ca95)
-- Significant AI assistance: the implementation and tests were drafted with Claude (Anthropic), as declared in the PR description. The author read every changed line, checked each method against the acceptance criteria and the existing domain/store behaviour, and ran the full suite before opening the PR. Each reviewer used GitHub Copilot for the required review comparison after their own review (see H and I).
+- Each reviewer used GitHub Copilot for the required review comparison after their own review (see H and I).
 - Linked issue closure: #1, #3 and #4 closed automatically by "Closes" on merge, confirmed on the Issues tab
 - Each member updated main (all on `a74ea06`):
   - Novica: 38 passed in 0.10s
