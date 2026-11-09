@@ -13,9 +13,9 @@ Baseline: Stage 6 foundation, 2026 revision 2. This starter deliberately leaves 
   - Quang (@quangle330), UG
   - Brendan (@BrendoAC11), UG
 - Shared repository URL: https://github.com/BN007-CMD/st1-assignment-3
-- Latest completed stage: Stage 8 Debugging and Refactoring (UG pathway 6 → 7 → 8 → 9 → 12)
-- Verified code SHA: b3a3b5800276979112cf7329ac5bb08c62bbb86f
-- Test command, working directory and observed result: `python -m pytest` run from `project/` → [88 passed in 0.06s] (all four members verified 88 passed on this SHA)
+- Latest completed stage: Stage 9 Queries Intergration (UG pathway 6 → 7 → 8 → 9 → 12)
+- Verified code SHA: 75ccce6cbff92cc31f547da19a7cf9b7941f088f
+- Test command, working directory and observed result: `python -m pytest` run from `project/` → [111 passed in 0.12s] (Jay also verified 111 passed on this SHA)
 - Final submitted SHA, if different from tested code SHA: the commit that adds the Stage 8 record this index. It adds no application code changes [confirm], so the verified code SHA above is the tested version.
 
 Do not put student IDs, private peer ratings, credentials or personal contact details here.
@@ -54,8 +54,17 @@ Git commands in the practical guide run from this root. Application commands run
 ```sh
 cd project
 python main.py
-python -m pytest
+python -m pytest -q
 cd ..
 ```
+To run interactive:
+
+```sh
+cd project
+python main.py --interactive
+cd ..
+```
+
+
 
 Use the approved environment described in the Git/GitHub group guide. The verified baseline is Python 3.13 with pytest 8.3.5. GitHub Copilot is the nominated assistant; verify significant output and record required decisions. Use synthetic data only. Use each supplied record only when you reach that stage in the applicable sequence.

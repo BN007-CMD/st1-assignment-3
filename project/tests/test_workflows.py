@@ -126,7 +126,7 @@ def test_ui01_sequence(services):
     cancelled = appointments.cancel_appointment('A1')
     assert cancelled is a1
     assert cancelled.status is AppointmentStatus.CANCELLED
-    assert appointments.find_appointment('A1') is a1
+    assert appointments.data_store.find_appointment('A1') is a1
 
     all_d1 = appointments.list_practitioner_appointments('D1')
     assert a1 in all_d1
@@ -144,7 +144,6 @@ def test_rejection_no_partial_state(services):
     practitioners.register_practitioner('D1', 'Taylor Example', 'General practice')
     appointments.book_appointment('A1', 'P1', 'D1', datetime(2026, 10, 1, 9, 0))
 
-    # legitimate state change happens BEFORE the snapshot
     appointments.cancel_appointment('A1')
 
     def snapshot():

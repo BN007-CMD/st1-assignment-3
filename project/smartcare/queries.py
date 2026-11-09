@@ -12,7 +12,6 @@ def appointment_sort_key(appointment: Appointment) -> tuple[datetime, str]:
     """
     return appointment.date_time, appointment.appointment_id
 
-
 def select_appointments(
     appointments: list[Appointment],
     practitioner_id: str,
