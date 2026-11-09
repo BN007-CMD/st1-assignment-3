@@ -16,7 +16,7 @@ Baseline: Stage 6 foundation, 2026 revision 2. This starter deliberately leaves 
 - Latest completed stage: Stage 9 Queries Intergration (UG pathway 6 → 7 → 8 → 9 → 12)
 - Verified code SHA: 75ccce6cbff92cc31f547da19a7cf9b7941f088f
 - Test command, working directory and observed result: `python -m pytest` run from `project/` → [111 passed in 0.12s] (Jay also verified 111 passed on this SHA)
-- Final submitted SHA, if different from tested code SHA: the commit that adds the Stage 8 record this index. It adds no application code changes [confirm], so the verified code SHA above is the tested version.
+- Final submitted SHA, if different from tested code SHA: the commit that adds the Stage 9 record this index.
 
 Do not put student IDs, private peer ratings, credentials or personal contact details here.
 
